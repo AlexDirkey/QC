@@ -1,75 +1,57 @@
 
-package gui.controller;
+package gui;
 
 import bll.AuthService;
-import dal.User;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
 
+/**
+ * LoginController håndterer login GUI og logik.
+ */
 public class LoginController {
 
-    @FXML private TextField usernameField;
-    @FXML private PasswordField passwordField;
+    @FXML
+    private TextField usernameField;
+    @FXML
+    private PasswordField passwordField;
 
-    private final AuthService authService = new AuthService();
+    private AuthService authService;
+
+    public LoginController() {
+        this.authService = new AuthService();
+    }
 
     @FXML
-    private void handleLogin(ActionEvent event) {
+    private void onHelloButtonClick(ActionEvent event) {
+        // Midlertidig løsning for at matche FXML event handler
+        System.out.println("Hello button clicked (placeholder)");
+    }
+
+    @FXML
+    private void onLoginButtonClick(ActionEvent event) {
         String username = usernameField.getText();
         String password = passwordField.getText();
 
-        User user = authService.authenticate(username, password);
+        String role = authService.login(username, password);
 
-        if (user != null) {
+        if (role != null) {
+            // Login succes – vis besked eller skift scene her
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Login Successful");
+            alert.setTitle("Login Succes");
             alert.setHeaderText(null);
-            alert.setContentText("Welcome, " + user.getUsername() + " (" + user.getRole() + ")");
+            alert.setContentText("Velkommen, " + role + "!");
             alert.showAndWait();
 
-            // RUTE BASERET PÅ ROLLE
-            switch (user.getRole().toLowerCase()) {
-                case "operator":
-                    loadView("/gui/view/OperatorView.fxml", event);
-                    break;
-                case "qa":
-                    loadView("/gui/view/QAView.fxml", event);
-                    break;
-                case "admin":
-                    loadView("/gui/view/AdminView.fxml", event);
-                    break;
-                default:
-                    Alert error = new Alert(Alert.AlertType.ERROR);
-                    error.setContentText("Unknown role: " + user.getRole());
-                    error.showAndWait();
-            }
+            // TODO: Load næste scene baseret på rolle
+
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Login Failed");
+            alert.setTitle("Login Fejl");
             alert.setHeaderText(null);
-            alert.setContentText("Invalid username or password.");
-            alert.showAndWait();
-        }
-    }
-
-    private void loadView(String fxmlPath, ActionEvent event) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-            Parent root = loader.load();
-            Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("Failed to load view: " + fxmlPath);
+            alert.setContentText("Forkert brugernavn eller kodeord.");
             alert.showAndWait();
         }
     }

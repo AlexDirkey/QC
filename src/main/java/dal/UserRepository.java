@@ -1,33 +1,46 @@
 package dal;
+
 import model.User;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.DriverManager;
+import java.sql.SQLException;
 
+/**
+ * UserRepository håndterer database-operationer for User.
+ */
 public class UserRepository {
 
-    private final String url = "jdbc:sqlite:belsign.db";
+    private DataBaseConnector DatabaseConnector;
 
-    public User FindByUsername(String username) {
+    /**
+     * Finder en bruger baseret på brugernavn.
+     * @param username Brugernavnet, der søges på.
+     * @return User objekt, hvis fundet; ellers null.
+     */
+    public User findByUsername(String username) {
+        String sql = "SELECT * FROM users WHERE username = ?";
 
-        try (Connection conn = DriverManager.getConnection(url)) {
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            String sql = "SELECT * FROM users WHERE username = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setString(1,username);
+            stmt.setString(1, username);
             ResultSet rs = stmt.executeQuery();
-            if (rs.next())  {
-                return new User(
-                        rs.getInt("id"),
-                        rs.getString("username"),
-                        rs.getString("password"),
-                        rs.getString("role")
-                );
 
+            if (rs.next()) {
+                int id = rs.getInt("id");
+                String uname = rs.getString("username");
+                String password = rs.getString("password");
+                String role = rs.getString("role");
+
+                return new User(id, uname, password, role);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } return null;
+
+        } catch (SQLException e) {
+            System.err.println("Error in findByUsername: " + e.getMessage());
+        }
+        return null;
     }
 }
+

@@ -3,9 +3,13 @@ module org.example.qc {
     requires javafx.fxml;
     requires java.sql;
 
-
     opens org.example.qc to javafx.fxml;
+    opens gui to javafx.fxml;
+
     exports org.example.qc;
     exports gui;
-    opens gui to javafx.fxml;
+    exports bll;
+    exports dal;
+    exports model;
+
 }

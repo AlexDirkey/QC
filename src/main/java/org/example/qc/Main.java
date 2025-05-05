@@ -10,9 +10,12 @@ import java.io.IOException;
 public class Main extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("/belsign/view/LoginView.fxml"));
+        System.out.println(Main.class.getResource("/LoginView.fxml"));
+        System.out.println(Main.class.getClassLoader().getResource("LoginView.fxml"));
+
+        FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("/gui/LoginView.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
-        stage.setTitle("Belsign Login");
+        stage.setTitle("BelSign Login");
         stage.setScene(scene);
         stage.show();
     }
