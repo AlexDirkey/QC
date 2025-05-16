@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox fx:controller="gui.LoginController"
+      xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx"
+      alignment="CENTER" spacing="20" style="-fx-background-color: #004b88;"
+      prefWidth="400" prefHeight="500">
+    <padding>
+        <Insets top="40" right="40" bottom="40" left="40"/>
+    </padding>
+
+    <Label fx:id="roleLabel" text="BelSign Rolle" style="-fx-font-size: 28; -fx-font-family: Helvetica; -fx-text-fill: white;" />
+
+    <TextField fx:id="usernameField" promptText="Brugernavn"
+               style="-fx-font-size: 18; -fx-pref-height: 50;" />
+
+    <PasswordField fx:id="passwordField" promptText="Kodeord"
+                   style="-fx-font-size: 18; -fx-pref-height: 50;" />
+
+    <Button text="Log ind" onAction="#onLoginButtonClick"
+            style="-fx-font-size: 20; -fx-pref-height: 60; -fx-pref-width: 200; -fx-background-color: #7fa8c5; -fx-text-fill: white;" />
+
+    <Button text="← Tilbage" onAction="#onBackButtonClick"
+            style="-fx-font-size: 16; -fx-pref-width: 120; -fx-background-color: #c44; -fx-text-fill: white;" />
+
+</VBox>

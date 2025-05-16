@@ -2,27 +2,16 @@ package gui;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
-import javafx.stage.Stage;
 import java.io.File;
-import java.io.IOException;
 
-/**
- * OperatorController håndterer OperatorView GUI.
- */
-public class OperatorController {
+public class OperatorController extends BaseController {
 
     @FXML
-    private ListView<String> pendingOrdersList;
-
-    @FXML
-    private ListView<String> inReviewOrdersList;
-
-    @FXML
-    private ListView<String> completedOrdersList;
+    private ListView<String> pendingOrdersList, inReviewOrdersList, completedOrdersList;
 
     @FXML
     private TextField orderNumberField;
@@ -32,11 +21,7 @@ public class OperatorController {
 
     @FXML
     private void onAddCommentButtonClick(ActionEvent event) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Tilføj kommentar");
-        alert.setHeaderText(null);
-        alert.setContentText("Funktionen til at tilføje kommentarer er endnu ikke implementeret.");
-        alert.showAndWait();
+        showInfo("Tilføj kommentar", "Funktionen til at tilføje kommentarer er endnu ikke implementeret.");
     }
 
     @FXML
@@ -48,7 +33,7 @@ public class OperatorController {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Vælg billede til upload");
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Billeder", "*.png", "*.jpg", "*.jpeg"));
-            File selectedFile = fileChooser.showOpenDialog(new Stage());
+            File selectedFile = fileChooser.showOpenDialog(null);
             if (selectedFile != null) {
                 statusLabel.setText("Billede valgt: " + selectedFile.getName());
             } else {
@@ -56,27 +41,7 @@ public class OperatorController {
             }
         }
     }
-
-    @FXML
-    private void onLogoutButtonClick(ActionEvent event) {
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Log ud");
-        confirmAlert.setHeaderText(null);
-        confirmAlert.setContentText("Er du sikker på, at du vil logge ud?");
-
-        confirmAlert.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK) {
-                try {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/LoginView.fxml"));
-                    Scene scene = new Scene(loader.load());
-                    Stage stage = (Stage) orderNumberField.getScene().getWindow();
-                    stage.setScene(scene);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
 }
+
 
 
