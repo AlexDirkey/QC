@@ -1,66 +1,55 @@
 package gui;
 
-import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.stage.Stage;
-import javafx.event.ActionEvent;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+
 import java.io.IOException;
 
-/**
- * BaseController med fælles metoder.
- */
-public class BaseController {
+public abstract class BaseController {
 
-    /**
-     * Vis en alert besked.
-     */
-    protected void showAlert(Alert.AlertType type, String message) {
-        Alert alert = new Alert(type);
-        alert.setTitle("Information");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-    /**
-     * Gå tilbage til RoleSelectionView.
-     */
-    @FXML
-    protected void onBackButtonClick(ActionEvent event) {
+    protected void changeScene(String fxmlFile, Stage stage) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/RoleSelectionView.fxml"));
-            Scene scene = new Scene(loader.load());
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlFile));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/gui/Style.css").toExternalForm());
+
             stage.setScene(scene);
+            stage.show();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    /**
-     * Log ud til LoginView med bekræftelse.
-     */
-    @FXML
-    protected void onLogoutButtonClick(ActionEvent event) {
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Bekræft logud");
-        confirmAlert.setHeaderText(null);
-        confirmAlert.setContentText("Er du sikker på, at du vil logge ud?");
+    protected void showWarning(String title, String message) {
+        Alert alert = new Alert(AlertType.WARNING);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
 
-        confirmAlert.showAndWait().ifPresent(response -> {
-            if (response.getText().equals("OK")) {
-                try {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/LoginView.fxml"));
-                    Scene scene = new Scene(loader.load());
-                    Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-                    stage.setScene(scene);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+    protected void showInfo(String title, String message) {
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    protected void showAlert(AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    public void handleLogin() {
+        // Standard implementering – kan overskrives af LoginController
     }
 }

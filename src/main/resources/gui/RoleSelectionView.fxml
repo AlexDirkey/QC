@@ -3,29 +3,16 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.geometry.Insets?>
 
 <GridPane fx:controller="gui.RoleSelectionController"
           xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx"
-          alignment="CENTER" hgap="40" vgap="20" style="-fx-background-color: #004b88;">
-
-    <padding>
-        <Insets top="40" right="40" bottom="40" left="40"/>
-    </padding>
-
-    <Label text="BelSign"
-           style="-fx-font-size: 32; -fx-font-family: Helvetica; -fx-text-fill: white;"
+          alignment="CENTER" hgap="40" vgap="20" styleClass="background">
+    <Label text="BelSign" styleClass="header-label"
            GridPane.columnSpan="2" GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.halignment="CENTER"/>
-
-    <Button text="QA" onAction="#onQARoleSelected"
-            style="-fx-font-size: 24; -fx-pref-width: 250; -fx-pref-height: 120;"
+    <Button text="QA" onAction="#onQARoleSelected" styleClass="role-button"
             GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-
-    <Button text="Operator" onAction="#onOperatorRoleSelected"
-            style="-fx-font-size: 24; -fx-pref-width: 250; -fx-pref-height: 120;"
+    <Button text="Operator" onAction="#onOperatorRoleSelected" styleClass="role-button"
             GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-
-    <Button text="Admin" onAction="#onAdminRoleSelected"
-            style="-fx-font-size: 20; -fx-pref-width: 180; -fx-pref-height: 70;"
+    <Button text="Admin" onAction="#onAdminRoleSelected" styleClass="admin-button"
             GridPane.rowIndex="2" GridPane.columnSpan="2" GridPane.columnIndex="0" GridPane.halignment="CENTER"/>
 </GridPane>

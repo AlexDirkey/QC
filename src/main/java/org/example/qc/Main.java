@@ -6,12 +6,16 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 public class Main extends Application {
+
     @Override
     public void start(Stage stage) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/gui/RoleSelectionView.fxml"));
             Scene scene = new Scene(fxmlLoader.load());
             stage.setTitle("BelSign Login");
+
+            // Tilføj globalt stylesheet
+            scene.getStylesheets().add(getClass().getResource("/gui/Style.css").toExternalForm());
             stage.setScene(scene);
             stage.show();
         } catch (Exception e) {

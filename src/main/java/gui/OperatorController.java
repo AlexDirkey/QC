@@ -6,23 +6,25 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import java.io.File;
 
 public class OperatorController extends BaseController {
 
     @FXML
-    private ListView<String> pendingOrdersList, inReviewOrdersList, completedOrdersList;
+    private ListView<String> pendingOrdersList;
+
+    @FXML
+    private ListView<String> inReviewOrdersList;
+
+    @FXML
+    private ListView<String> completedOrdersList;
 
     @FXML
     private TextField orderNumberField;
 
     @FXML
     private Label statusLabel;
-
-    @FXML
-    private void onAddCommentButtonClick(ActionEvent event) {
-        showInfo("Tilføj kommentar", "Funktionen til at tilføje kommentarer er endnu ikke implementeret.");
-    }
 
     @FXML
     private void onUploadButtonClick() {
@@ -33,7 +35,7 @@ public class OperatorController extends BaseController {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Vælg billede til upload");
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Billeder", "*.png", "*.jpg", "*.jpeg"));
-            File selectedFile = fileChooser.showOpenDialog(null);
+            File selectedFile = fileChooser.showOpenDialog(new Stage());
             if (selectedFile != null) {
                 statusLabel.setText("Billede valgt: " + selectedFile.getName());
             } else {
@@ -41,7 +43,20 @@ public class OperatorController extends BaseController {
             }
         }
     }
+
+    @FXML
+    private void onAddCommentButtonClick(ActionEvent event) {
+        showInfo("Tilføj kommentar", "Funktionen til at tilføje kommentarer er endnu ikke implementeret.");
+    }
+
+    @FXML
+    private void onLogoutButtonClick(ActionEvent event) {
+        Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
+        changeScene("/gui/RoleSelectionView.fxml", stage);
+    }
 }
+
+
 
 
 

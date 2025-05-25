@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
+<VBox fx:controller="gui.CreateUserController"
+      xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx"
+      alignment="CENTER" spacing="15" styleClass="background"
+      prefWidth="400" prefHeight="500">
+
+    <padding>
+        <Insets top="40" right="40" bottom="40" left="40"/>
+    </padding>
+
+    <Label text="Opret ny bruger" styleClass="header-label" />
+
+    <TextField fx:id="usernameField" promptText="Brugernavn" />
+    <PasswordField fx:id="passwordField" promptText="Kodeord" />
+
+    <ComboBox fx:id="roleComboBox" promptText="Vælg rolle">
+        <items>
+            <FXCollections fx:factory="observableArrayList">
+                <String fx:value="Admin" />
+                <String fx:value="Operator" />
+                <String fx:value="QA" />
+            </FXCollections>
+        </items>
+    </ComboBox>
+
+    <Button text="Opret bruger" onAction="#onCreateUserClick" styleClass="action-button" />
+    <Button text="Tilbage" onAction="#onBackButtonClick" styleClass="logout-button" />
+</VBox>
+

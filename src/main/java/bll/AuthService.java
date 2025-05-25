@@ -1,38 +1,53 @@
 package bll;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import dal.UserRepository;
 import model.User;
+import java.util.List;
+import java.util.stream.Collectors;
 
-/**
- * AuthService håndterer login-logik.
- */
 public class AuthService {
-    private UserRepository userRepository;
 
-    /**
-     * Constructor med dependency injection.
-     */
+    private final UserRepository userRepository;
+
     public AuthService() {
         this.userRepository = new UserRepository();
     }
 
-    /**
-     * Tjekker om brugernavn og password matcher en bruger i databasen.
-     * @param username Brugernavn.
-     * @param password Password.
-     * @return Brugerens rolle, hvis login er succes; ellers null.
-     */
     public String login(String username, String password) {
         User user = userRepository.findByUsername(username);
-        if (user != null) {
-            if (user.getPassword().equals(password)) {
-                return user.getRole(); // Returnér rollen hvis korrekt login
-            } else {
-                System.out.println("Forkert password.");
-            }
-        } else {
-            System.out.println("Bruger ikke fundet.");
-        }
-        return null;
+        if (user == null) return null;
+
+        BCrypt.Result result = BCrypt.verifyer().verify(password.toCharArray(), user.getPassword());
+        return result.verified ? user.getRole() : null;
+    }
+
+    public void addUser(String username, String password, String role) {
+        String hash = BCrypt.withDefaults().hashToString(12, password.toCharArray());
+        User user = new User(username, hash, role);
+        userRepository.save(user);
+    }
+
+    public boolean userExists(String username) {
+        return userRepository.findByUsername(username) != null;
+    }
+
+    public List<String> getAllUsernames() {
+        return userRepository.findAll().stream()
+                .map(User::getUsername)
+                .collect(Collectors.toList());
+    }
+
+    public void deleteUser(String username) {
+        userRepository.deleteByUsername(username);
+    }
+
+    public boolean verifyPassword(String password, String hashed) {
+        return BCrypt.verifyer().verify(password.toCharArray(), hashed).verified;
+    }
+
+    public String hashPassword(String password) {
+        return BCrypt.withDefaults().hashToString(12, password.toCharArray());
     }
 }
+

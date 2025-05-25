@@ -1,8 +1,10 @@
 package gui;
 
+import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
+import javafx.stage.Stage;
 
 public class QAController extends BaseController {
 
@@ -28,4 +30,11 @@ public class QAController extends BaseController {
             showWarning("Ingen valgt", "Vælg en ordre først.");
         }
     }
+
+    @FXML
+    private void onLogoutButtonClick(ActionEvent event) {
+        Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
+        changeScene("/gui/RoleSelectionView.fxml", stage);
+    }
 }
+

@@ -1,0 +1,38 @@
+/* Basis layout */
+.root {
+    -fx-background-color: #004b88;
+}
+
+/* Standard tekst */
+.label {
+    -fx-font-family: Helvetica;
+    -fx-text-fill: white;
+    -fx-font-size: 20px;
+}
+
+/* Store knapper */
+.button {
+    -fx-background-color: #7fa8c5;
+    -fx-text-fill: white;
+    -fx-font-size: 18px;
+    -fx-pref-height: 60;
+    -fx-pref-width: 200;
+}
+
+/* Farlige handlinger */
+.button.danger {
+    -fx-background-color: #c44;
+    -fx-text-fill: white;
+}
+
+/* Små knapper */
+.button.small {
+    -fx-pref-height: 40;
+    -fx-pref-width: 120;
+}
+
+/* Inputfelter */
+.text-field, .password-field {
+    -fx-font-size: 18px;
+    -fx-pref-height: 50;
+}

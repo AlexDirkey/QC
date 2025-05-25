@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
+<VBox fx:controller="gui.AssignRoleController" alignment="CENTER" spacing="15" xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx" styleClass="background" prefWidth="500" prefHeight="400">
+    <Label text="Tildel Rolle" styleClass="header-label" />
+
+    <HBox alignment="CENTER" spacing="10">
+        <Label text="Bruger:" styleClass="label" />
+        <TextField fx:id="usernameField" promptText="Indtast brugernavn" />
+    </HBox>
+
+    <HBox alignment="CENTER" spacing="10">
+        <Label text="Rolle:" styleClass="label" />
+        <ComboBox fx:id="roleComboBox">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="admin" />
+                    <String fx:value="qa" />
+                    <String fx:value="operator" />
+                </FXCollections>
+            </items>
+        </ComboBox>
+    </HBox>
+
+    <Button text="Gem" onAction="#onSaveRoleClick" styleClass="action-button" />
+    <Button text="← Tilbage" onAction="#onBackButtonClick" styleClass="logout-button" />
+</VBox>
+
