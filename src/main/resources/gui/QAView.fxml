@@ -5,7 +5,7 @@
 
 <VBox fx:controller="gui.QAController" alignment="CENTER" spacing="15.0" styleClass="background"
       xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" prefWidth="600" prefHeight="600">
-    <Label text="QA View" styleClass="header-label"/>
+    <Label text="QA" styleClass="header-label"/>
     <Label text="Under review ordrer" styleClass="standard-label"/>
     <ListView fx:id="reviewOrdersList" prefHeight="150" prefWidth="400"/>
     <Button text="Godkend ordre" onAction="#onApproveOrderClick" styleClass="action-button"/>
