@@ -1,15 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
 
-<VBox fx:controller="gui.QAController" alignment="CENTER" spacing="15.0" styleClass="background"
-      xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" prefWidth="600" prefHeight="600">
-    <Label text="QA" styleClass="header-label"/>
-    <Label text="Under review ordrer" styleClass="standard-label"/>
-    <ListView fx:id="reviewOrdersList" prefHeight="150" prefWidth="400"/>
-    <Button text="Godkend ordre" onAction="#onApproveOrderClick" styleClass="action-button"/>
-    <Button text="Afvis ordre" onAction="#onRejectOrderClick" styleClass="action-button"/>
-    <Button text="Log ud" onAction="#onLogoutButtonClick" styleClass="logout-button"/>
+<VBox fx:controller="gui.QAController" xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      alignment="CENTER" spacing="15.0" prefWidth="800" prefHeight="600" styleClass="background">
+
+    <Label text="QA Billedgodkendelse" styleClass="header-label"/>
+
+    <ListView fx:id="photoListView" prefWidth="600" prefHeight="150"/>
+
+    <ImageView fx:id="photoPreview" fitHeight="300" fitWidth="500" preserveRatio="true"/>
+
+    <HBox spacing="20">
+        <Button fx:id="approveButton" text="Godkend" onAction="#onApproveButtonClick" styleClass="approve-button"/>
+        <Button fx:id="rejectButton" text="Afvis" onAction="#onRejectButtonClick" styleClass="reject-button"/>
+    </HBox>
+
+    <Label fx:id="statusLabel" text="" styleClass="standard-label"/>
+
 </VBox>
-
