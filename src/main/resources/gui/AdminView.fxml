@@ -4,15 +4,19 @@
 <?import javafx.scene.control.*?>
 
 <VBox fx:controller="gui.AdminController" alignment="CENTER" spacing="20.0" styleClass="background"
-      xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" prefWidth="500" prefHeight="600">
+      xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" prefWidth="600" prefHeight="600">
+
+    <Label text="Admin Panel" styleClass="header-label"/>
 
     <ListView fx:id="userListView" prefHeight="150" prefWidth="400"/>
 
+    <TextField fx:id="usernameField" promptText="Brugernavn"/>
+    <PasswordField fx:id="passwordField" promptText="Kodeord"/>
+    <ComboBox fx:id="roleComboBox" promptText="Vælg rolle"/>
+
     <Button text="Opret bruger" onAction="#onCreateUserClick" styleClass="action-button"/>
     <Button text="Slet bruger" onAction="#onDeleteUserClick" styleClass="action-button"/>
-    <Button text="Tildel rolle" onAction="#onAssignRoleButtonClick" styleClass="action-button"/>
-    <Button text="Se logs" onAction="#onViewLogsButtonClick" styleClass="action-button"/>
-    <Button text="Administrer brugere" onAction="#onManageUsersButtonClick" styleClass="action-button"/>
+    <Button text="Tildel rolle" onAction="#onAssignRoleClick" styleClass="action-button"/>
     <Button text="Log ud" onAction="#onLogoutButtonClick" styleClass="logout-button"/>
 
 </VBox>

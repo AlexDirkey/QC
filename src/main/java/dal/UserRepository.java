@@ -1,6 +1,7 @@
 package dal;
 
 import model.User;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +36,6 @@ public class UserRepository {
             stmt.setString(2, user.getPassword());
             stmt.setString(3, user.getRole());
             stmt.executeUpdate();
-
         } catch (SQLException e) {
             System.err.println("Error in save: " + e.getMessage());
         }
@@ -48,7 +48,6 @@ public class UserRepository {
 
             stmt.setString(1, username);
             stmt.executeUpdate();
-
         } catch (SQLException e) {
             System.err.println("Error in deleteByUsername: " + e.getMessage());
         }
@@ -85,7 +84,6 @@ public class UserRepository {
             stmt.setString(2, user.getRole());
             stmt.setString(3, user.getUsername());
             stmt.executeUpdate();
-
         } catch (SQLException e) {
             System.err.println("Error in updateUser: " + e.getMessage());
         }
@@ -99,4 +97,3 @@ public class UserRepository {
         return new User(id, uname, password, role);
     }
 }
-

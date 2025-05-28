@@ -7,7 +7,7 @@ import java.sql.SQLException;
 public class DataBaseConnector {
 
     //
-    private static final String URL = "jdbc:sqlserver://localhost:1433;databaseName=databaseBelSoft;encrypt=true;trustServerCertificate=true";
+    private static final String URL = "jdbc:sqlserver://10.176.111.34:1433;databaseName=databaseBelSoft;encrypt=true;trustServerCertificate=true";
     private static final String USER = "CSe2024a_e_0"; //
     private static final String PASSWORD = "CSe2024aE0!24"; //
 

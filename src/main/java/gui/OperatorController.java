@@ -10,9 +10,16 @@ import javafx.stage.Stage;
 import java.io.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import dal.DataBaseConnector;
+
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.videoio.VideoCapture;
 
 public class OperatorController extends BaseController {
 
@@ -29,12 +36,24 @@ public class OperatorController extends BaseController {
     private TextField orderNumberField;
 
     @FXML
+    private TextField commentField;
+
+    @FXML
     private Label statusLabel;
 
     private final List<File> uploadedPhotos = new ArrayList<>();
     private final DataBaseConnector databaseConnector = new DataBaseConnector();
-
     private final String currentUser = "demo_user"; // TODO: Replace with actual logged-in user
+
+
+
+    static {
+        try {
+            System.load("C:/Users/45817/IdeaProjects/QC/src/main/resources/lib/opencv/opencv_java490.dll");
+        } catch (UnsatisfiedLinkError e) {
+            System.err.println("Kunne ikke loade OpenCV DLL: " + e.getMessage());
+        }
+    }
 
     @FXML
     private void onUploadButtonClick() {
@@ -44,6 +63,8 @@ public class OperatorController extends BaseController {
         }
 
         String orderNumber = orderNumberField.getText().trim();
+        String comment = commentField.getText().trim();
+
         if (orderNumber.isEmpty()) {
             statusLabel.setText("Indtast et ordrenummer.");
         } else {
@@ -53,7 +74,7 @@ public class OperatorController extends BaseController {
             File selectedFile = fileChooser.showOpenDialog(new Stage());
             if (selectedFile != null) {
                 uploadedPhotos.add(selectedFile);
-                savePhotoToDatabase(selectedFile, orderNumber);
+                savePhotoToDatabase(selectedFile, orderNumber, comment);
                 statusLabel.setText("Billede valgt (" + uploadedPhotos.size() + "/5): " + selectedFile.getName());
             } else {
                 statusLabel.setText("Ingen fil valgt.");
@@ -61,8 +82,54 @@ public class OperatorController extends BaseController {
         }
     }
 
-    private void savePhotoToDatabase(File imageFile, String orderNumber) {
-        String sql = "INSERT INTO photos (order_number, image_data, uploaded_by) VALUES (?, ?, ?)";
+    @FXML
+    private void onCameraCaptureClick() {
+        if (uploadedPhotos.size() >= 5) {
+            statusLabel.setText("Maksimalt 5 billeder tilladt.");
+            return;
+        }
+
+        String orderNumber = orderNumberField.getText().trim();
+        String comment = commentField.getText().trim();
+
+        if (orderNumber.isEmpty()) {
+            statusLabel.setText("Indtast et ordrenummer.");
+            return;
+        }
+
+        File capturedImage = capturePhotoFromCamera();
+        if (capturedImage != null) {
+            uploadedPhotos.add(capturedImage);
+            savePhotoToDatabase(capturedImage, orderNumber, comment);
+            statusLabel.setText("Billede taget (" + uploadedPhotos.size() + "/5): " + capturedImage.getName());
+        } else {
+            statusLabel.setText("Kunne ikke tage billede.");
+        }
+    }
+
+    private File capturePhotoFromCamera() {
+        VideoCapture camera = new VideoCapture(0);
+        if (!camera.isOpened()) return null;
+
+        Mat frame = new Mat();
+        File imageFile = null;
+
+        if (camera.read(frame)) {
+            try {
+                String timestamp = LocalDateTime.now().toString().replaceAll("[:.]", "-");
+                imageFile = File.createTempFile("photo_" + timestamp, ".jpg");
+                Imgcodecs.imwrite(imageFile.getAbsolutePath(), frame);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        camera.release();
+        return imageFile;
+    }
+
+    private void savePhotoToDatabase(File imageFile, String orderNumber, String comment) {
+        String sql = "INSERT INTO photos (order_number, image_data, uploaded_by, uploaded_at, comment) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = databaseConnector.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -71,6 +138,8 @@ public class OperatorController extends BaseController {
             stmt.setString(1, orderNumber);
             stmt.setBinaryStream(2, fis, (int) imageFile.length());
             stmt.setString(3, currentUser);
+            stmt.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()));
+            stmt.setString(5, comment);
             stmt.executeUpdate();
 
         } catch (Exception e) {
@@ -80,16 +149,14 @@ public class OperatorController extends BaseController {
     }
 
     @FXML
-    private void onAddCommentButtonClick(ActionEvent event) {
-        showInfo("Tilføj kommentar", "Funktionen til at tilføje kommentarer er endnu ikke implementeret.");
-    }
-
-    @FXML
     private void onLogoutButtonClick(ActionEvent event) {
         Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
         changeScene("/gui/RoleSelectionView.fxml", stage);
     }
 }
+
+
+
 
 
 

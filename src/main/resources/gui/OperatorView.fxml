@@ -13,8 +13,10 @@
     <Label text="Færdige ordrer" styleClass="standard-label"/>
     <ListView fx:id="completedOrdersList" prefHeight="100" prefWidth="400"/>
     <TextField fx:id="orderNumberField" promptText="Indtast ordrenummer"/>
+    <TextField fx:id="commentField" promptText="Skriv kommentar til billede"/>
     <Label fx:id="statusLabel" text="" styleClass="standard-label"/>
+
+    <Button text="Tag billede" onAction="#onCameraCaptureClick" styleClass="action-button"/>
     <Button text="Upload billede" onAction="#onUploadButtonClick" styleClass="action-button"/>
-    <Button text="Tilføj kommentar" onAction="#onAddCommentButtonClick" styleClass="action-button"/>
     <Button text="Log ud" onAction="#onLogoutButtonClick" styleClass="logout-button"/>
 </VBox>
