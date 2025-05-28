@@ -52,4 +52,8 @@ public abstract class BaseController {
     public void handleLogin() {
         // Standard implementering – kan overskrives af LoginController
     }
+
+    protected Stage getStageFromEvent(javafx.event.ActionEvent event) {
+        return (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
+    }
 }

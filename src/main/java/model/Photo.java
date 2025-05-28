@@ -5,20 +5,22 @@ import java.time.LocalDateTime;
 public class Photo {
     private int id;
     private String orderNumber;
-    private String filePath;
     private String uploadedBy;
-    private LocalDateTime uploadedAt;
-    private String comment;
     private String status;
+    private LocalDateTime uploadedAt;
+    private boolean approved;
+    private String comment;
+    private String filePath;
 
-    public Photo(int id, String orderNumber, String filePath, String uploadedBy, LocalDateTime uploadedAt, String comment, String status) {
+    public Photo(int id, String orderNumber, String uploadedBy, String status,
+                 LocalDateTime uploadedAt, boolean approved, String comment) {
         this.id = id;
         this.orderNumber = orderNumber;
-        this.filePath = filePath;
         this.uploadedBy = uploadedBy;
-        this.uploadedAt = uploadedAt;
-        this.comment = comment;
         this.status = status;
+        this.uploadedAt = uploadedAt;
+        this.approved = approved;
+        this.comment = comment;
     }
 
     public int getId() {
@@ -29,23 +31,31 @@ public class Photo {
         return orderNumber;
     }
 
-    public String getFilePath() {
-        return filePath;
-    }
-
     public String getUploadedBy() {
         return uploadedBy;
+    }
+
+    public String getStatus() {
+        return status;
     }
 
     public LocalDateTime getUploadedAt() {
         return uploadedAt;
     }
 
+    public boolean isApproved() {
+        return approved;
+    }
+
     public String getComment() {
         return comment;
     }
 
-    public String getStatus() {
-        return status;
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
     }
 }

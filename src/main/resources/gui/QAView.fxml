@@ -17,6 +17,7 @@
     <HBox spacing="20">
         <Button fx:id="approveButton" text="Godkend" onAction="#onApproveButtonClick" styleClass="approve-button"/>
         <Button fx:id="rejectButton" text="Afvis" onAction="#onRejectButtonClick" styleClass="reject-button"/>
+        <Button text="Generér rapport" onAction="#onGenerateReportClick" styleClass="action-button"/>
     </HBox>
 
     <Label fx:id="statusLabel" text="" styleClass="standard-label"/>

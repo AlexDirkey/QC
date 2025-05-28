@@ -1,5 +1,6 @@
 package gui;
-
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import bll.PhotoService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -8,11 +9,19 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import model.Photo;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.PDFont;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
-public class QAController {
+public class QAController extends BaseController {
 
     @FXML
     private ListView<String> photoListView;
@@ -87,6 +96,51 @@ public class QAController {
                 statusLabel.setText("Fejl ved opdatering.");
                 System.err.println("Opdateringsfejl: " + e.getMessage());
             }
+        }
+    }
+
+    @FXML
+    private void onGenerateReportClick() {
+        List<Photo> approvedPhotos = photoService.getApprovedPhotos();
+
+        if (approvedPhotos.isEmpty()) {
+            showWarning("Ingen billeder", "Ingen godkendte billeder fundet.");
+            return;
+        }
+
+        try (PDDocument doc = new PDDocument()) {
+            PDPage page = new PDPage();
+            doc.addPage(page);
+
+            PDPageContentStream contentStream = new PDPageContentStream(doc, page);
+            PDFont font = new Standard14Fonts(Standard14Fonts.FontName.HELVETICA).getFont();
+            contentStream.setFont(font, 12);
+            contentStream.setFont(font, 12);
+            contentStream.beginText();
+            contentStream.setLeading(14.5f);
+            contentStream.newLineAtOffset(50, 750);
+
+            contentStream.showText("Godkendte Ordrer Rapport:");
+            contentStream.newLine();
+            contentStream.newLine();
+
+            for (Photo photo : approvedPhotos) {
+                String line = "Ordre: " + photo.getOrderNumber()
+                        + " | Bruger: " + photo.getUploadedBy()
+                        + " | Dato: " + photo.getUploadedAt();
+                contentStream.showText(line);
+                contentStream.newLine();
+            }
+
+            contentStream.endText();
+            contentStream.close();
+
+            File outputFile = new File("approved_report.pdf");
+            doc.save(outputFile);
+            showInfo("Rapport genereret", "PDF gemt som " + outputFile.getAbsolutePath());
+
+        } catch (IOException e) {
+            showWarning("Fejl", "Kunne ikke generere rapport: " + e.getMessage());
         }
     }
 }

@@ -21,6 +21,10 @@ public class PhotoService {
     }
 
     public void updatePhotoStatus(int photoId, boolean approved) {
-        photoRepository.updateStatus(photoId, approved ? "approved" : "rejected");
+        photoRepository.updateStatus(photoId, approved);
+    }
+
+    public List<Photo> getApprovedPhotos() {
+        return photoRepository.findApprovedPhotos();
     }
 }

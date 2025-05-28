@@ -93,4 +93,9 @@ public class AdminController extends BaseController {
     private void onManageUsersButtonClick(ActionEvent event) {
         showInfo("Brugeradministration", "Administrationspanel åbnet.");
     }
+
+    @FXML
+    private void onLogoutButtonClick(ActionEvent event) {
+        changeScene("/gui/LoginView.fxml", getStageFromEvent(event));
+    }
 }
