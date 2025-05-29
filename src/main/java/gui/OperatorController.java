@@ -1,6 +1,7 @@
 package gui;
 
-import Util.OpenCVHelper;
+import javafx.scene.image.ImageView;
+import util.OpenCVHelper;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -18,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import dal.DataBaseConnector;
 
-import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.videoio.VideoCapture;
@@ -46,7 +46,6 @@ public class OperatorController extends BaseController {
     private final List<File> uploadedPhotos = new ArrayList<>();
     private final DataBaseConnector databaseConnector = new DataBaseConnector();
     private final String currentUser = "demo_user"; // TODO: Replace with actual logged-in user
-
 
 
     static {
@@ -156,11 +155,19 @@ public class OperatorController extends BaseController {
         changeScene("/gui/RoleSelectionView.fxml", stage);
     }
 
-    OpenCVHelper cam = new OpenCVHelper(0);
-if (cam.isCameraOpen()) {
-        Mat frame = cam.captureFrame();
-        Image fxImage = cam.matToImage(frame);
-        imageView.setImage(fxImage);
+    @FXML
+    private ImageView imageView;
+
+    OpenCVHelper cam = OpenCVHelper.getInstance();
+
+    {
+        if(cam.isCameraOpen())
+
+        {
+            Mat frame = cam.captureFrame();
+            Image fxImage = cam.matToImage(frame);
+            imageView.setImage(fxImage);
+        }
     }
 }
 
