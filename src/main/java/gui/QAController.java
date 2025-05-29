@@ -12,10 +12,8 @@ import model.Photo;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
-import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.font.PDFont;
+
+
 
 import java.io.File;
 import java.io.IOException;
@@ -113,7 +111,8 @@ public class QAController extends BaseController {
             doc.addPage(page);
 
             PDPageContentStream contentStream = new PDPageContentStream(doc, page);
-            PDFont font = new Standard14Fonts(Standard14Fonts.FontName.HELVETICA).getFont();
+            PDFont font = PDType1Font.HELVETICA;
+            contentStream.setFont(font, 12);
             contentStream.setFont(font, 12);
             contentStream.setFont(font, 12);
             contentStream.beginText();

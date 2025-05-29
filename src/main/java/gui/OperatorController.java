@@ -1,10 +1,12 @@
 package gui;
 
+import Util.OpenCVHelper;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import java.io.*;
@@ -152,6 +154,13 @@ public class OperatorController extends BaseController {
     private void onLogoutButtonClick(ActionEvent event) {
         Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
         changeScene("/gui/RoleSelectionView.fxml", stage);
+    }
+
+    OpenCVHelper cam = new OpenCVHelper(0);
+if (cam.isCameraOpen()) {
+        Mat frame = cam.captureFrame();
+        Image fxImage = cam.matToImage(frame);
+        imageView.setImage(fxImage);
     }
 }
 
