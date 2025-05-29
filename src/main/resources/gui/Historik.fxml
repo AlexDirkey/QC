@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+
+<AnchorPane xmlns:fx="http://javafx.com/fxml" fx:controller="gui.HistorikController" prefWidth="600" prefHeight="400">
+    <ListView fx:id="historikListView" layoutX="14" layoutY="14" prefWidth="250" prefHeight="370"/>
+    <ImageView fx:id="historikPreview" layoutX="280" layoutY="14" fitWidth="300" fitHeight="240"/>
+    <Label fx:id="kommentarLabel" layoutX="280" layoutY="270" wrapText="true" prefWidth="300"/>
+</AnchorPane>

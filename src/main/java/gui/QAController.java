@@ -1,4 +1,8 @@
 package gui;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import bll.PhotoService;
@@ -140,6 +144,25 @@ public class QAController extends BaseController {
 
         } catch (IOException e) {
             showWarning("Fejl", "Kunne ikke generere rapport: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void onVisHistorikClick() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/Historik.fxml"));
+            Parent root = loader.load();
+
+            HistorikController controller = loader.getController();
+            controller.loadHistorik("1234"); // <- dynamisk ordre-ID senere!
+
+            Stage stage = new Stage();
+            stage.setTitle("Ordrehistorik");
+            stage.setScene(new Scene(root));
+            stage.show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

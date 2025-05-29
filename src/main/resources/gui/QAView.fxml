@@ -22,4 +22,10 @@
 
     <Label fx:id="statusLabel" text="" styleClass="standard-label"/>
 
+    <Button fx:id="visHistorikButton"
+            layoutX="400" layoutY="370"
+            mnemonicParsing="false"
+            text="Vis historik"
+            onAction="#onVisHistorikClick"/>
+
 </VBox>
