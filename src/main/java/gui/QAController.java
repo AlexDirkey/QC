@@ -16,7 +16,7 @@ import model.Photo;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
-
+import util.MailHelper;
 
 
 import java.io.File;
@@ -140,10 +140,18 @@ public class QAController extends BaseController {
 
             File outputFile = new File("approved_report.pdf");
             doc.save(outputFile);
+            MailHelper.sendEmailWithAttachment(
+                    "kunde@domain.dk",
+                    "Din rapport er klar",
+                    "Hej! Vedhæftet er din godkendte ordrerapport.",
+                    outputFile
+            );
             showInfo("Rapport genereret", "PDF gemt som " + outputFile.getAbsolutePath());
 
         } catch (IOException e) {
             showWarning("Fejl", "Kunne ikke generere rapport: " + e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
