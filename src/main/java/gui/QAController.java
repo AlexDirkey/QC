@@ -1,4 +1,5 @@
 package gui;
+
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -17,7 +18,6 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import util.MailHelper;
-
 
 import java.io.File;
 import java.io.IOException;
@@ -110,14 +110,23 @@ public class QAController extends BaseController {
             return;
         }
 
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Send rapport");
+        dialog.setHeaderText("Indtast kundens e-mailadresse");
+        dialog.setContentText("E-mail:");
+
+        String email = dialog.showAndWait().orElse(null);
+        if (email == null || email.isBlank()) {
+            showWarning("Ingen e-mail", "E-mailadresse er påkrævet for at sende rapport.");
+            return;
+        }
+
         try (PDDocument doc = new PDDocument()) {
             PDPage page = new PDPage();
             doc.addPage(page);
 
             PDPageContentStream contentStream = new PDPageContentStream(doc, page);
             PDFont font = PDType1Font.HELVETICA;
-            contentStream.setFont(font, 12);
-            contentStream.setFont(font, 12);
             contentStream.setFont(font, 12);
             contentStream.beginText();
             contentStream.setLeading(14.5f);
@@ -140,16 +149,21 @@ public class QAController extends BaseController {
 
             File outputFile = new File("approved_report.pdf");
             doc.save(outputFile);
+
             MailHelper.sendEmailWithAttachment(
-                    "kunde@domain.dk",
+                    email,
                     "Din rapport er klar",
                     "Hej! Vedhæftet er din godkendte ordrerapport.",
                     outputFile
             );
-            showInfo("Rapport genereret", "PDF gemt som " + outputFile.getAbsolutePath());
 
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Rapport sendt");
+            alert.setHeaderText("Rapporten er sendt");
+            alert.setContentText("E-mail sendt til: " + email);
+            alert.showAndWait();
         } catch (IOException e) {
-            showWarning("Fejl", "Kunne ikke generere rapport: " + e.getMessage());
+            showWarning("Fejl", "Kunne ikke generere eller sende rapport: " + e.getMessage());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

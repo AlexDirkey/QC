@@ -1,38 +1,43 @@
-/* Basis layout */
-.root {
-    -fx-background-color: #004b88;
+.background {
+    -fx-background-image: url("/assets/BLE_watermark_faded.png");
+    -fx-background-size: cover;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
 }
 
-/* Standard tekst */
-.label {
-    -fx-font-family: Helvetica;
+.role-button {
+    -fx-background-color: rgba(0, 90, 150, 0.8); /* Belman blå */
     -fx-text-fill: white;
-    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-background-radius: 30;
+    -fx-padding: 10 25;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 5, 0, 0, 2);
 }
 
-/* Store knapper */
-.button {
-    -fx-background-color: #7fa8c5;
+.role-button:hover {
+    -fx-background-color: rgba(0, 90, 150, 1.0);
+}
+
+.admin-button {
+    -fx-background-color: rgba(0, 50, 100, 0.9);
     -fx-text-fill: white;
-    -fx-font-size: 18px;
-    -fx-pref-height: 60;
-    -fx-pref-width: 200;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-background-radius: 30;
+    -fx-padding: 10 25;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 5, 0, 0, 2);
 }
 
-/* Farlige handlinger */
-.button.danger {
-    -fx-background-color: #c44;
-    -fx-text-fill: white;
+.admin-button:hover {
+    -fx-background-color: rgba(0, 50, 100, 1.0);
 }
 
-/* Små knapper */
-.button.small {
-    -fx-pref-height: 40;
-    -fx-pref-width: 120;
-}
-
-/* Inputfelter */
-.text-field, .password-field {
-    -fx-font-size: 18px;
-    -fx-pref-height: 50;
+.header-label {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #003366; /* Dyb marineblå */
+    -fx-effect: dropshadow(gaussian, rgba(255,255,255,0.7), 3, 0.5, 0, 1);
 }
