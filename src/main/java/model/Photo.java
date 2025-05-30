@@ -2,6 +2,10 @@ package model;
 
 import java.time.LocalDateTime;
 
+/**
+ * Repræsenterer et billede uploadet til en specifik ordre.
+ * Indeholder metadata som bruger, status og godkendelse.
+ */
 public class Photo {
     private int id;
     private String orderNumber;
@@ -9,6 +13,7 @@ public class Photo {
     private String status;
     private LocalDateTime uploadedAt;
     private boolean approved;
+    private boolean inReview;
     private String comment;
     private String filePath;
 
@@ -47,12 +52,24 @@ public class Photo {
         return approved;
     }
 
+    public boolean isInReview() {
+        return inReview;
+    }
+
     public String getComment() {
         return comment;
     }
 
     public String getFilePath() {
         return filePath;
+    }
+
+    public void setApproved(boolean approved) {
+        this.approved = approved;
+    }
+
+    public void setInReview(boolean inReview) {
+        this.inReview = inReview;
     }
 
     public void setFilePath(String filePath) {

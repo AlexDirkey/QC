@@ -1,37 +1,38 @@
 package gui;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.stage.Stage;
+import gui.NotificationHelper;
 
 public class LoginController extends BaseController {
-
     private String selectedRole;
+    private final NotificationHelper notifier = new NotificationHelper(this);
 
+    /** Modtager rollen fra RoleSelectionController */
     public void setSelectedRole(String role) {
         this.selectedRole = role;
     }
 
     @FXML
-    private void onLoginButtonClick(javafx.event.ActionEvent event) {
-        Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
-
-        // Fremtidig validering:
-        // String username = usernameField.getText();
-        // String password = passwordField.getText();
-        // User user = userRepository.findByUsername(username);
-        // if (user != null && user.getPassword().equals(password)) {...}
-
-        switch (selectedRole) {
-            case "Admin" -> changeScene("/gui/AdminView.fxml", stage);
-            case "Operator" -> changeScene("/gui/OperatorView.fxml", stage);
-            case "QA" -> changeScene("/gui/QAView.fxml", stage);
-            default -> showWarning("Ukendt rolle", "Rollen er ikke understøttet.");
+    private void onLoginButtonClick(ActionEvent event) {
+        if (selectedRole == null) {
+            notifier.showWarning("Ingen rolle valgt",
+                    "Gå tilbage og vælg en rolle før du logger ind.");
+            return;
+        }
+        try {
+            // Konverter String → enum og skift scene
+            View target = View.valueOf(selectedRole.toUpperCase());
+            changeScene(target, getStageFromEvent(event));
+        } catch (IllegalArgumentException e) {
+            notifier.showWarning("Ukendt rolle",
+                    "Rollen '" + selectedRole + "' er ikke understøttet.");
         }
     }
 
     @FXML
-    private void onBackButtonClick(javafx.event.ActionEvent event) {
-        Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
-        changeScene("/gui/RoleSelectionView.fxml", stage);
+    private void onBackButtonClick(ActionEvent event) {
+        // Gå tilbage til rollevalg
+        changeScene(View.ROLE_SELECTION, getStageFromEvent(event));
     }
 }

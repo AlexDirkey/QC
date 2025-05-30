@@ -11,7 +11,7 @@ public class Main extends Application {
     public void start(Stage stage) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/gui/RoleSelectionView.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 500, 350);
+            Scene scene = new Scene(fxmlLoader.load(), 500, 500);
             stage.setTitle("BelSign Login");
 
             // Tilføj globalt stylesheet

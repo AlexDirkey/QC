@@ -1,22 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
 
-<VBox fx:controller="gui.AdminController" alignment="CENTER" spacing="20.0" styleClass="background"
-      xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" prefWidth="600" prefHeight="600">
+<VBox fx:controller="gui.AdminController"
+      xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx"
+      alignment="CENTER" spacing="20" styleClass="background"
+      prefWidth="700" prefHeight="600">
+
+    <padding>
+        <Insets top="30" right="40" bottom="30" left="40"/>
+    </padding>
 
     <Label text="Admin Panel" styleClass="header-label"/>
 
-    <ListView fx:id="userListView" prefHeight="150" prefWidth="400"/>
+    <ListView fx:id="userListView" prefHeight="180" prefWidth="500"/>
 
-    <TextField fx:id="usernameField" promptText="Brugernavn"/>
-    <PasswordField fx:id="passwordField" promptText="Kodeord"/>
-    <ComboBox fx:id="roleComboBox" promptText="Vælg rolle"/>
+    <VBox spacing="10" alignment="CENTER">
+        <TextField fx:id="usernameField" promptText="Brugernavn" prefWidth="300"/>
+        <PasswordField fx:id="passwordField" promptText="Kodeord" prefWidth="300"/>
+        <ComboBox fx:id="roleComboBox" promptText="Vælg rolle" prefWidth="300"/>
+    </VBox>
 
-    <Button text="Opret bruger" onAction="#onCreateUserClick" styleClass="action-button"/>
-    <Button text="Slet bruger" onAction="#onDeleteUserClick" styleClass="action-button"/>
-    <Button text="Tildel rolle" onAction="#onAssignRoleButtonClick" styleClass="action-button"/>
-    <Button text="Log ud" onAction="#onLogoutButtonClick" styleClass="logout-button"/>
+    <HBox spacing="15" alignment="CENTER">
+        <Button text="Opret bruger" onAction="#onCreateUserClick" styleClass="action-button"/>
+        <Button text="Slet bruger" onAction="#onDeleteUserClick" styleClass="action-button"/>
+        <Button text="Tildel rolle" onAction="#onAssignRoleClick" styleClass="action-button"/>
+    </HBox>
 
+    <Button text="Log ud" onAction="#onLogoutClick" styleClass="logout-button"/>
 </VBox>

@@ -16,7 +16,20 @@
     <TextField fx:id="commentField" promptText="Skriv kommentar til billede"/>
     <Label fx:id="statusLabel" text="" styleClass="standard-label"/>
 
-    <Button text="Tag billede" onAction="#onCameraCaptureClick" styleClass="action-button"/>
-    <Button text="Upload billede" onAction="#onUploadButtonClick" styleClass="action-button"/>
+    <Button fx:id="captureButton"
+            text="Tag billede"
+            onAction="#onCameraCaptureClick"
+            styleClass="action-button"/>
+    <Button fx:id="uploadButton"
+            text="Upload billede"
+            onAction="#onUploadButtonClick"
+            styleClass="action-button"/>
     <Button text="Log ud" onAction="#onLogoutButtonClick" styleClass="logout-button"/>
+
+    <Button fx:id="saveOrderButton"
+            text="Gem ordren"
+            onAction="#onSaveOrderClick"
+            disable="true"
+            styleClass="action-button"/>
+
 </VBox>

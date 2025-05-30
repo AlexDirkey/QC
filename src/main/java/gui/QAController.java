@@ -1,80 +1,95 @@
 package gui;
 
+import bll.PhotoService;
+import bll.ReportService;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.stage.Stage;
-import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import bll.PhotoService;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.Stage;
 import model.Photo;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import util.MailHelper;
+
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Controller til QA-flow, hvor fotos kan godkendes eller afvises
+ * og der kan genereres PDF-rapporter med godkendte fotos sendt via e-mail.
+ */
 public class QAController extends BaseController {
 
-    @FXML
-    private ListView<String> photoListView;
+    @FXML private ListView<String> photoListView;
+    @FXML private ImageView photoPreview;
+    @FXML private Button approveButton;
+    @FXML private Button rejectButton;
+    @FXML private Button generateReportButton;
+    @FXML private Button viewHistoryButton;
+    @FXML private Label statusLabel;
 
-    @FXML
-    private ImageView photoPreview;
-
-    @FXML
-    private Button approveButton;
-
-    @FXML
-    private Button rejectButton;
-
-    @FXML
-    private Label statusLabel;
-
+    // Services injected for testbarhed og separation of concerns
     private final PhotoService photoService = new PhotoService();
-    private ObservableList<Photo> pendingPhotos;
+    private final ReportService reportService = new ReportService(photoService);
+    private final gui.NotificationHelper notifier = new gui.NotificationHelper(this);
 
+    private List<Photo> pendingPhotos;
+
+    /**
+     * Initialiserer controller: loader u-godkendte fotos og sætter listener på ListView.
+     */
     @FXML
     public void initialize() {
         loadPendingPhotos();
-        photoListView.getSelectionModel().selectedIndexProperty().addListener((obs, oldVal, newVal) -> onPhotoSelected());
+        photoListView.getSelectionModel().selectedIndexProperty()
+                .addListener((obs, oldIdx, newIdx) -> onPhotoSelected());
     }
 
+    /**
+     * Henter alle u-godkendte fotos fra service og viser dem i listen.
+     */
     private void loadPendingPhotos() {
-        List<Photo> photos = photoService.getUnapprovedPhotos();
-        pendingPhotos = FXCollections.observableArrayList(photos);
-
-        ObservableList<String> displayList = FXCollections.observableArrayList();
+        pendingPhotos = photoService.getUnapprovedPhotos();
+        ObservableList<String> display = FXCollections.observableArrayList();
         for (Photo p : pendingPhotos) {
-            displayList.add("Ordre: " + p.getOrderNumber() + " | Bruger: " + p.getUploadedBy() + " | " + p.getUploadedAt());
+            display.add(String.format("Ordre: %s | Bruger: %s | %s",
+                    p.getOrderNumber(), p.getUploadedBy(), p.getUploadedAt()));
         }
-        photoListView.setItems(displayList);
+        photoListView.setItems(display);
+        photoPreview.setImage(null);
+        statusLabel.setText("");
     }
 
+    /**
+     * Vis preview for det valgte foto eller vis fejl.
+     */
     private void onPhotoSelected() {
-        int index = photoListView.getSelectionModel().getSelectedIndex();
-        if (index >= 0 && index < pendingPhotos.size()) {
-            Photo selectedPhoto = pendingPhotos.get(index);
-            File file = new File(selectedPhoto.getFilePath());
-            if (file.exists()) {
-                photoPreview.setImage(new Image(file.toURI().toString()));
-                statusLabel.setText("");
-            } else {
-                statusLabel.setText("Billedet kunne ikke indlæses.");
-                photoPreview.setImage(null);
-            }
+        int idx = photoListView.getSelectionModel().getSelectedIndex();
+        if (idx < 0 || idx >= pendingPhotos.size()) return;
+
+        Photo photo = pendingPhotos.get(idx);
+        File file = new File(photo.getFilePath());
+        if (file.exists()) {
+            photoPreview.setImage(new Image(file.toURI().toString()));
+            statusLabel.setText("");
+        } else {
+            photoPreview.setImage(null);
+            notifier.showWarning("Billede ikke fundet", "Kunne ikke indlæse det valgte billede.");
         }
     }
 
+    /**
+     * Opdaterer status for valgt foto og refresher listen.
+     */
     @FXML
     private void onApproveButtonClick() {
         updatePhotoStatus(true);
@@ -85,31 +100,35 @@ public class QAController extends BaseController {
         updatePhotoStatus(false);
     }
 
+    @FXML
+    protected void navigateBackToRoleSelection(ActionEvent event) {
+        // Gå tilbage til rollevalg
+        changeScene(View.ROLE_SELECTION, getStageFromEvent(event));
+    }
+
     private void updatePhotoStatus(boolean approved) {
-        int index = photoListView.getSelectionModel().getSelectedIndex();
-        if (index >= 0) {
-            Photo selectedPhoto = pendingPhotos.get(index);
-            try {
-                photoService.updatePhotoStatus(selectedPhoto.getId(), approved);
-                statusLabel.setText(approved ? "Billedet blev godkendt." : "Billedet blev afvist.");
-                loadPendingPhotos();
-                photoPreview.setImage(null);
-            } catch (Exception e) {
-                statusLabel.setText("Fejl ved opdatering.");
-                System.err.println("Opdateringsfejl: " + e.getMessage());
-            }
+        int idx = photoListView.getSelectionModel().getSelectedIndex();
+        if (idx < 0) {
+            notifier.showWarning("Ingen valgt", "Vælg et foto først.");
+            return;
+        }
+        Photo photo = pendingPhotos.get(idx);
+        try {
+            photoService.updatePhotoStatus(photo.getId(), approved);
+            notifier.showInfo("Status opdateret",
+                    approved ? "Foto godkendt." : "Foto afvist.");
+            loadPendingPhotos();
+        } catch (Exception e) {
+            notifier.showWarning("Opdateringsfejl",
+                    "Kunne ikke opdatere foto: " + e.getMessage());
         }
     }
 
+    /**
+     * Genererer og sender PDF-rapport til angivet e-mail.
+     */
     @FXML
     private void onGenerateReportClick() {
-        List<Photo> approvedPhotos = photoService.getApprovedPhotos();
-
-        if (approvedPhotos.isEmpty()) {
-            showWarning("Ingen billeder", "Ingen godkendte billeder fundet.");
-            return;
-        }
-
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Send rapport");
         dialog.setHeaderText("Indtast kundens e-mailadresse");
@@ -117,74 +136,41 @@ public class QAController extends BaseController {
 
         String email = dialog.showAndWait().orElse(null);
         if (email == null || email.isBlank()) {
-            showWarning("Ingen e-mail", "E-mailadresse er påkrævet for at sende rapport.");
+            notifier.showWarning("Ingen e-mail", "E-mailadresse er påkrævet.");
             return;
         }
 
-        try (PDDocument doc = new PDDocument()) {
-            PDPage page = new PDPage();
-            doc.addPage(page);
-
-            PDPageContentStream contentStream = new PDPageContentStream(doc, page);
-            PDFont font = PDType1Font.HELVETICA;
-            contentStream.setFont(font, 12);
-            contentStream.beginText();
-            contentStream.setLeading(14.5f);
-            contentStream.newLineAtOffset(50, 750);
-
-            contentStream.showText("Godkendte Ordrer Rapport:");
-            contentStream.newLine();
-            contentStream.newLine();
-
-            for (Photo photo : approvedPhotos) {
-                String line = "Ordre: " + photo.getOrderNumber()
-                        + " | Bruger: " + photo.getUploadedBy()
-                        + " | Dato: " + photo.getUploadedAt();
-                contentStream.showText(line);
-                contentStream.newLine();
-            }
-
-            contentStream.endText();
-            contentStream.close();
-
-            File outputFile = new File("approved_report.pdf");
-            doc.save(outputFile);
-
-            MailHelper.sendEmailWithAttachment(
-                    email,
-                    "Din rapport er klar",
-                    "Hej! Vedhæftet er din godkendte ordrerapport.",
-                    outputFile
-            );
-
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Rapport sendt");
-            alert.setHeaderText("Rapporten er sendt");
-            alert.setContentText("E-mail sendt til: " + email);
-            alert.showAndWait();
-        } catch (IOException e) {
-            showWarning("Fejl", "Kunne ikke generere eller sende rapport: " + e.getMessage());
+        try {
+            reportService.generateAndSendApprovedReport(email);
+            notifier.showInfo("Rapport sendt", "E-mail sendt til: " + email);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            notifier.showWarning("Rapportfejl",
+                    "Kunne ikke generere eller sende rapport: " + e.getMessage());
         }
     }
 
+    /**
+     * Åbner historik-vinduet for den valgte ordre.
+     */
     @FXML
-    private void onVisHistorikClick() {
+    private void onViewHistoryClick() {
+        int idx = photoListView.getSelectionModel().getSelectedIndex();
+        if (idx < 0) {
+            notifier.showWarning("Ingen valgt", "Vælg en ordre først.");
+            return;
+        }
+        String orderNumber = pendingPhotos.get(idx).getOrderNumber();
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/Historik.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(View.HISTORIK.getFxmlPath()));
             Parent root = loader.load();
-
-            HistorikController controller = loader.getController();
-            controller.loadHistorik("1234"); // <- dynamisk ordre-ID senere!
-
+            HistorikController hist = loader.getController();
+            hist.loadHistorik(orderNumber);
             Stage stage = new Stage();
             stage.setTitle("Ordrehistorik");
             stage.setScene(new Scene(root));
             stage.show();
-
         } catch (IOException e) {
-            e.printStackTrace();
+            notifier.showWarning("Fejl", "Kunne ikke åbne historik: " + e.getMessage());
         }
     }
 }

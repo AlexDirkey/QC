@@ -1,175 +1,164 @@
 package gui;
 
-import javafx.scene.image.ImageView;
-import util.OpenCVHelper;
+import bll.OperatorService;
+import gui.NotificationHelper;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import java.io.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.Timestamp;
+import model.Photo;
+import util.OpenCVHelper;
+
+import java.io.File;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import dal.DataBaseConnector;
+import java.util.stream.Collectors;
 
-import org.opencv.core.Mat;
-import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.videoio.VideoCapture;
-
+/**
+ * Controller for operatør-brugerfladen: håndter uploads, kamera og gem ordren.
+ * Godkend-knap er fjernet.
+ */
 public class OperatorController extends BaseController {
 
-    @FXML
-    private ListView<String> pendingOrdersList;
+    // --- FXML-komponenter ---
+    @FXML private ListView<String> pendingOrdersList;
+    @FXML private ListView<String> inReviewOrdersList;
+    @FXML private ListView<String> completedOrdersList;
+    @FXML private TextField orderNumberField;
+    @FXML private TextField commentField;
+    @FXML private Button captureButton;
+    @FXML private Button uploadButton;
+    @FXML private Button saveOrderButton;
+    @FXML private Label statusLabel;
 
-    @FXML
-    private ListView<String> inReviewOrdersList;
+    // --- Service og helper ---
+    private final OperatorService operatorService = new OperatorService();
+    private final NotificationHelper notifier      = new NotificationHelper(this);
 
-    @FXML
-    private ListView<String> completedOrdersList;
-
-    @FXML
-    private TextField orderNumberField;
-
-    @FXML
-    private TextField commentField;
-
-    @FXML
-    private Label statusLabel;
-
+    // --- Internt state ---
     private final List<File> uploadedPhotos = new ArrayList<>();
-    private final DataBaseConnector databaseConnector = new DataBaseConnector();
-    private final String currentUser = "demo_user"; // TODO: Replace with actual logged-in user
+    private final String currentUser = "demo_user";
 
+    /**
+     * Initialiserer UI: læs lister og slå gem-knap til/fra.
+     */
+    @FXML
+    protected void initialize() {
+        loadOrders();
+        saveOrderButton.setDisable(true);
+        orderNumberField.textProperty().addListener((obs, oldV, newV) ->
+                saveOrderButton.setDisable(orderNumberField.getText().trim().isEmpty() || uploadedPhotos.isEmpty())
+        );
+    }
 
-    static {
+    private void loadOrders() {
+        // PENDING
+        List<Photo> pendingPhotos = operatorService.getPendingPhotos();
+        ObservableList<String> pendingItems = FXCollections.observableArrayList(
+                pendingPhotos.stream()
+                        .map(p -> "ID:" + p.getId() + " | Ordre:" + p.getOrderNumber())
+                        .collect(Collectors.toList())
+        );
+        pendingOrdersList.setItems(pendingItems);
+
+        // IN_REVIEW
+        List<Photo> inReview = operatorService.getCompletedPhotos().stream()
+                .filter(p -> "IN_REVIEW".equalsIgnoreCase(p.getStatus()))
+                .collect(Collectors.toList());
+        inReviewOrdersList.setItems(FXCollections.observableArrayList(
+                inReview.stream()
+                        .map(p -> "ID:" + p.getId() + " | Ordre:" + p.getOrderNumber())
+                        .collect(Collectors.toList())
+        ));
+
+        // DONE
+        List<Photo> done = operatorService.getCompletedPhotos().stream()
+                .filter(p -> "APPROVED".equalsIgnoreCase(p.getStatus()) || "REJECTED".equalsIgnoreCase(p.getStatus()))
+                .collect(Collectors.toList());
+        completedOrdersList.setItems(FXCollections.observableArrayList(
+                done.stream()
+                        .map(p -> "ID:" + p.getId() + " | Ordre:" + p.getOrderNumber() + " | " + p.getStatus())
+                        .collect(Collectors.toList())
+        ));
+    }
+
+    @FXML
+    protected void onUploadButtonClick(ActionEvent event) {
+        if (uploadedPhotos.size() >= 5) {
+            notifier.showWarning("Maks billeder nået", "Maksimalt 5 billeder tilladt.");
+            return;
+        }
+        if (orderNumberField.getText().trim().isEmpty()) {
+            notifier.showWarning("Manglende ordrenummer", "Indtast ordrenummer før upload.");
+            return;
+        }
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Vælg billede til upload");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Billeder", "*.png", "*.jpg", "*.jpeg"));
+        Stage stage = (Stage) uploadButton.getScene().getWindow();
+        File file = chooser.showOpenDialog(stage);
+        if (file != null) {
+            uploadedPhotos.add(file);
+            notifier.showInfo("Billede valgt", file.getName());
+            saveOrderButton.setDisable(false);
+        }
+    }
+
+    @FXML
+    protected void onCameraCaptureClick(ActionEvent event) {
+        if (uploadedPhotos.size() >= 5) {
+            notifier.showWarning("Maks billeder nået", "Maksimalt 5 billeder tilladt.");
+            return;
+        }
+        if (orderNumberField.getText().trim().isEmpty()) {
+            notifier.showWarning("Manglende ordrenummer", "Indtast ordrenummer før optagelse.");
+            return;
+        }
+        String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String path = System.getProperty("java.io.tmpdir") + File.separator + "capture_" + ts + ".jpg";
+        boolean ok = OpenCVHelper.getInstance().saveFrameToFile(path);
+        if (ok) {
+            File img = new File(path);
+            uploadedPhotos.add(img);
+            notifier.showInfo("Billede taget", img.getName());
+            saveOrderButton.setDisable(false);
+        } else {
+            notifier.showWarning("Kamera fejl", "Kunne ikke tage billede.");
+        }
+    }
+
+    @FXML
+    protected void onSaveOrderClick(ActionEvent event) {
+        String orderNumber = orderNumberField.getText().trim();
+        String comment = commentField.getText().trim();
         try {
-            System.load("C:/Users/45817/IdeaProjects/QC/src/main/resources/lib/opencv/opencv_java490.dll");
-        } catch (UnsatisfiedLinkError e) {
-            System.err.println("Kunne ikke loade OpenCV DLL: " + e.getMessage());
-        }
-    }
-
-    @FXML
-    private void onUploadButtonClick() {
-        if (uploadedPhotos.size() >= 5) {
-            statusLabel.setText("Maksimalt 5 billeder tilladt.");
-            return;
-        }
-
-        String orderNumber = orderNumberField.getText().trim();
-        String comment = commentField.getText().trim();
-
-        if (orderNumber.isEmpty()) {
-            statusLabel.setText("Indtast et ordrenummer.");
-        } else {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Vælg billede til upload");
-            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Billeder", "*.png", "*.jpg", "*.jpeg"));
-            File selectedFile = fileChooser.showOpenDialog(new Stage());
-            if (selectedFile != null) {
-                uploadedPhotos.add(selectedFile);
-                savePhotoToDatabase(selectedFile, orderNumber, comment);
-                statusLabel.setText("Billede valgt (" + uploadedPhotos.size() + "/5): " + selectedFile.getName());
-            } else {
-                statusLabel.setText("Ingen fil valgt.");
-            }
-        }
-    }
-
-    @FXML
-    private void onCameraCaptureClick() {
-        if (uploadedPhotos.size() >= 5) {
-            statusLabel.setText("Maksimalt 5 billeder tilladt.");
-            return;
-        }
-
-        String orderNumber = orderNumberField.getText().trim();
-        String comment = commentField.getText().trim();
-
-        if (orderNumber.isEmpty()) {
-            statusLabel.setText("Indtast et ordrenummer.");
-            return;
-        }
-
-        File capturedImage = capturePhotoFromCamera();
-        if (capturedImage != null) {
-            uploadedPhotos.add(capturedImage);
-            savePhotoToDatabase(capturedImage, orderNumber, comment);
-            statusLabel.setText("Billede taget (" + uploadedPhotos.size() + "/5): " + capturedImage.getName());
-        } else {
-            statusLabel.setText("Kunne ikke tage billede.");
-        }
-    }
-
-    private File capturePhotoFromCamera() {
-        VideoCapture camera = new VideoCapture(0);
-        if (!camera.isOpened()) return null;
-
-        Mat frame = new Mat();
-        File imageFile = null;
-
-        if (camera.read(frame)) {
-            try {
-                String timestamp = LocalDateTime.now().toString().replaceAll("[:.]", "-");
-                imageFile = File.createTempFile("photo_" + timestamp, ".jpg");
-                Imgcodecs.imwrite(imageFile.getAbsolutePath(), frame);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        camera.release();
-        return imageFile;
-    }
-
-    private void savePhotoToDatabase(File imageFile, String orderNumber, String comment) {
-        String sql = "INSERT INTO photos (order_number, image_data, uploaded_by, uploaded_at, comment) VALUES (?, ?, ?, ?, ?)";
-
-        try (Connection conn = databaseConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             FileInputStream fis = new FileInputStream(imageFile)) {
-
-            stmt.setString(1, orderNumber);
-            stmt.setBinaryStream(2, fis, (int) imageFile.length());
-            stmt.setString(3, currentUser);
-            stmt.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()));
-            stmt.setString(5, comment);
-            stmt.executeUpdate();
-
+            operatorService.saveOrder(orderNumber, uploadedPhotos, comment, currentUser);
+            notifier.showInfo("Ordre gemt", orderNumber);
+            uploadedPhotos.clear();
+            orderNumberField.clear();
+            commentField.clear();
+            saveOrderButton.setDisable(true);
+            loadOrders();
         } catch (Exception e) {
-            e.printStackTrace();
-            showWarning("Fejl ved upload", "Kunne ikke gemme billedet i databasen.");
+            notifier.showWarning("Fejl", "Kunne ikke gemme: " + e.getMessage());
         }
     }
 
     @FXML
-    private void onLogoutButtonClick(ActionEvent event) {
-        Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
-        changeScene("/gui/RoleSelectionView.fxml", stage);
-    }
-
-    @FXML
-    private ImageView imageView;
-
-    OpenCVHelper cam = OpenCVHelper.getInstance();
-
-    {
-        if(cam.isCameraOpen())
-
-        {
-            Mat frame = cam.captureFrame();
-            Image fxImage = cam.matToImage(frame);
-            imageView.setImage(fxImage);
-        }
+    protected void onLogoutButtonClick(ActionEvent event) {
+        changeScene(View.ROLE_SELECTION, getStageFromEvent(event));
     }
 }
+
+
 
 
 

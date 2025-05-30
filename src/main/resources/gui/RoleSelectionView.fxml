@@ -1,21 +1,23 @@
-<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.control.Button?>
-<GridPane fx:controller="gui.RoleSelectionController"
-          xmlns:fx="http://javafx.com/fxml" xmlns="http://javafx.com/javafx"
-          alignment="CENTER" hgap="20" vgap="20" styleClass="background"
-          prefWidth="500" prefHeight="350"> <!-- STØRRELSE HER -->
+<?import javafx.scene.layout.Pane?>
+<VBox xmlns:fx="http://javafx.com/fxml" fx:controller="gui.RoleSelectionController"
+      spacing="20" alignment="CENTER" styleClass="background"
+      xmlns="http://javafx.com/javafx">
 
-    <Label text="BelSign" styleClass="header-label"
-           GridPane.columnSpan="2" GridPane.rowIndex="0" GridPane.columnIndex="0"
-           GridPane.halignment="CENTER"/>
+    <Label text="BelSign" styleClass="header-label" />
 
-    <Button text="QA" onAction="#onQARoleSelected" styleClass="role-button"
-            GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.halignment="CENTER"/>
+    <GridPane alignment="CENTER" hgap="30" vgap="10">
+        <Button text="QA" onAction="#onQARoleSelected" styleClass="role-button"
+                GridPane.rowIndex="0" GridPane.columnIndex="0" />
 
-    <Button text="Operator" onAction="#onOperatorRoleSelected" styleClass="role-button"
-            GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.halignment="CENTER"/>
+        <Button text="Operator" onAction="#onOperatorRoleSelected" styleClass="role-button"
+                GridPane.rowIndex="0" GridPane.columnIndex="1" />
+    </GridPane>
 
-    <Button text="Admin" onAction="#onAdminRoleSelected" styleClass="admin-button"
-            GridPane.rowIndex="2" GridPane.columnSpan="2" GridPane.columnIndex="0" GridPane.halignment="CENTER"/>
-</GridPane>
+    <Pane fx:id="spacer" VBox.vgrow="ALWAYS" />
+
+    <Button text="Admin" onAction="#onAdminRoleSelected" styleClass="admin-button" />
+</VBox>

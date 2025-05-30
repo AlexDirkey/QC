@@ -4,28 +4,27 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 
-<VBox fx:controller="gui.QAController" xmlns="http://javafx.com/javafx"
+<VBox fx:controller="gui.QAController"
+      xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
-      alignment="CENTER" spacing="15.0" prefWidth="800" prefHeight="600" styleClass="background">
+      alignment="CENTER" spacing="15.0" prefWidth="800" prefHeight="650"
+      styleClass="background">
 
     <Label text="QA Billedgodkendelse" styleClass="header-label"/>
 
-    <ListView fx:id="photoListView" prefWidth="600" prefHeight="150"/>
+    <ListView fx:id="photoListView" prefWidth="600" prefHeight="120"/>
 
-    <ImageView fx:id="photoPreview" fitHeight="300" fitWidth="500" preserveRatio="true"/>
+    <ImageView fx:id="photoPreview" fitHeight="280" fitWidth="500" preserveRatio="true"/>
 
     <HBox spacing="20">
         <Button fx:id="approveButton" text="Godkend" onAction="#onApproveButtonClick" styleClass="approve-button"/>
         <Button fx:id="rejectButton" text="Afvis" onAction="#onRejectButtonClick" styleClass="reject-button"/>
         <Button text="Generér rapport" onAction="#onGenerateReportClick" styleClass="action-button"/>
+        <Button text="Vis historik" fx:id="visHistorikButton" onAction="#onViewHistoryClick" styleClass="action-button"/>
     </HBox>
 
     <Label fx:id="statusLabel" text="" styleClass="standard-label"/>
 
-    <Button fx:id="visHistorikButton"
-            layoutX="400" layoutY="370"
-            mnemonicParsing="false"
-            text="Vis historik"
-            onAction="#onVisHistorikClick"/>
+    <Button text="← Tilbage" onAction="#navigateBackToRoleSelection" styleClass="back-button"/>
 
 </VBox>

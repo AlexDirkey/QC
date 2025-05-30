@@ -13,6 +13,8 @@ import model.Photo;
 import java.io.File;
 import java.util.List;
 
+//Controller til visning af fotohistorik af en ordre.
+
 public class HistorikController {
 
     @FXML
@@ -24,13 +26,17 @@ public class HistorikController {
     @FXML
     private Label kommentarLabel;
 
+
+    //Henter photo-ojekter
     private final PhotoService photoService = new PhotoService();
     private ObservableList<Photo> photos;
 
+    //Indlæser historie for en given ordre
     public void loadHistorik(String orderNumber) {
         List<Photo> photoList = photoService.getPhotosByOrderNumber(orderNumber);
         photos = FXCollections.observableArrayList(photoList);
 
+        //LAver en visningsliste med bruger og tidspunkt
         ObservableList<String> visning = FXCollections.observableArrayList();
         for (Photo photo : photos) {
             visning.add("Bruger: " + photo.getUploadedBy() + " | " + photo.getUploadedAt());
@@ -39,10 +45,12 @@ public class HistorikController {
     }
 
     @FXML
+    //Initialiserer lister
     private void initialize() {
         historikListView.getSelectionModel().selectedIndexProperty().addListener((obs, oldVal, newVal) -> onPhotoSelected());
     }
 
+    //Kaldes, når et foto vælges på listen
     private void onPhotoSelected() {
         int index = historikListView.getSelectionModel().getSelectedIndex();
         if (index >= 0 && index < photos.size()) {
@@ -53,6 +61,7 @@ public class HistorikController {
             } else {
                 historikPreview.setImage(null);
             }
+            //Viser kommentarer
             kommentarLabel.setText(selected.getComment() != null ? selected.getComment() : "Ingen kommentar.");
         }
     }

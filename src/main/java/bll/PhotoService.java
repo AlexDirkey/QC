@@ -2,41 +2,49 @@ package bll;
 
 import dal.PhotoRepository;
 import model.Photo;
-
 import java.util.List;
 
-//Gemmer og henter photo-objekter
+/**
+ * Service-lag for QA og historik: henter u-godkendte, godkendte fotos,
+ * samt henter fotos pr. ordre og opdaterer status.
+ */
 public class PhotoService {
+    private final PhotoRepository repo = new PhotoRepository();
 
-    //Udfører databasetransaktioner
-
-    private final PhotoRepository photoRepository = new PhotoRepository();
-
-    //Gemmer 'photo' som objekt i databasen
-
-    public void savePhoto(Photo photo) {
-        photoRepository.save(photo);
-    }
-
-    //Henter fotos, som er tilknyttet et ordrenr
-
-    public List<Photo> getPhotosByOrderNumber(String orderNumber) {
-        //Returnerer en liste af photo-objekter. Eller ingen, hvis ingen er tilknyttet
-        return photoRepository.findByOrderNumber(orderNumber);
-    }
-
-    //Henter photos, der ikke er godkendt
+    /**
+     * Henter alle fotos med status = 'PENDING'.
+     */
     public List<Photo> getUnapprovedPhotos() {
-        return photoRepository.findUnapprovedPhotos();
+        return repo.findUnapprovedPhotos();
     }
 
-    //Opdaterer status for et foto
-    public void updatePhotoStatus(int photoId, boolean approved) {
-        photoRepository.updateStatus(photoId, approved);
-    }
-
-    //Henter alle godkendte fotos
+    /**
+     * Henter alle fotos med status = 'APPROVED'.
+     */
     public List<Photo> getApprovedPhotos() {
-        return photoRepository.findApprovedPhotos();
+        return repo.findApprovedPhotos();
+    }
+
+    /**
+     * Opdaterer fotoets status til 'APPROVED' eller 'REJECTED'.
+     */
+    public void updatePhotoStatus(int photoId, boolean approved) {
+        String status = approved ? "APPROVED" : "REJECTED";
+        repo.updateStatus(photoId, approved, status);
+    }
+
+    /**
+     * Henter alle fotos (uanset status).
+     */
+    public List<Photo> getAll() {
+        return repo.getAllPhotos();
+    }
+
+    /**
+     * Henter alle fotos for en given ordre.
+     */
+    public List<Photo> getPhotosByOrderNumber(String orderNumber) {
+        return repo.findByOrderNumber(orderNumber);
     }
 }
+

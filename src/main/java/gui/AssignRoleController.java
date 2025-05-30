@@ -10,6 +10,9 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import model.User;
 import dal.UserRepository;
+import gui.View;
+
+// Controller, til at tildele roller til eksisterende brugere. Viser brugere, og opdaterer
 
 public class AssignRoleController extends BaseController {
 
@@ -25,6 +28,8 @@ public class AssignRoleController extends BaseController {
     @FXML
     private Label statusLabel;
 
+
+    //Instansierer et UserRepository
     private final UserRepository userRepository = new UserRepository();
 
     @FXML
@@ -38,14 +43,18 @@ public class AssignRoleController extends BaseController {
         roleChoiceBox.getItems().addAll("Admin", "Operator", "QA");
     }
 
+
+    //FJERN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     private void handleBypassLogin(String role, Stage stage) {
         switch (role) {
-            case "Admin" -> changeScene("/gui/AdminView.fxml", stage);
-            case "Operator" -> changeScene("/gui/OperatorView.fxml", stage);
-            case "QA" -> changeScene("/gui/QAView.fxml", stage);
+            case "Admin"    -> changeScene(View.ADMIN, stage);
+            case "Operator" -> changeScene(View.OPERATOR, stage);
+            case "QA"       -> changeScene(View.QA, stage);
+            default         -> showWarning("Ukendt rolle", "Rollen er ikke understøttet.");
         }
     }
 
+    //Tildeler roller til valgt bruger - viser en alert, hvis brugeren ikke kan findes
     @FXML
     private void handleAssignRole() {
         String selectedUser = userChoiceBox.getValue();
@@ -67,6 +76,7 @@ public class AssignRoleController extends BaseController {
         }
     }
 
+    //Viser en alert
     private void showAlert(String title, String message) {
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle(title);

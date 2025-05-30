@@ -2,112 +2,156 @@ package dal;
 
 import model.Photo;
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Repository til Photo-objekter. Håndterer CRUD mod dbo.Photos-tabellen.
+ */
 public class PhotoRepository {
+    private static final String URL      = "jdbc:sqlserver://10.176.111.34:1433;databaseName=databaseBelSoft;encrypt=true;trustServerCertificate=true";
+    private static final String USER     = "CSe2024a_e_0";
+    private static final String PASSWORD = "CSe2024aE0!24";
 
-    private final DataBaseConnector databaseConnector = new DataBaseConnector();
-
-    public List<Photo> findUnapprovedPhotos() {
-        List<Photo> photos = new ArrayList<>();
-        String sql = "SELECT * FROM photos WHERE status IS NULL";
-        try (Connection conn = databaseConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            while (rs.next()) {
-                photos.add(mapResultSetToPhoto(rs));
-            }
-
-        } catch (SQLException e) {
-            System.err.println("Error in findUnapprovedPhotos: " + e.getMessage());
-        }
-        return photos;
+    private Connection connect() throws SQLException {
+        return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 
-    public void updateStatus(int photoId, boolean approved) {
-        String sql = "UPDATE photos SET status = ? WHERE id = ?";
-        try (Connection conn = databaseConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, approved ? "approved" : "rejected");
-            stmt.setInt(2, photoId);
-            stmt.executeUpdate();
-
-        } catch (SQLException e) {
-            System.err.println("Error in updateStatus: " + e.getMessage());
-        }
-    }
-
-    public List<Photo> findByOrderNumber(String orderNumber) {
-        List<Photo> photos = new ArrayList<>();
-        String sql = "SELECT * FROM photos WHERE order_number = ?";
-        try (Connection conn = databaseConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, orderNumber);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                photos.add(mapResultSetToPhoto(rs));
-            }
-
-        } catch (SQLException e) {
-            System.err.println("Error in findByOrderNumber: " + e.getMessage());
-        }
-        return photos;
-    }
-
-    private Photo mapResultSetToPhoto(ResultSet rs) throws SQLException {
-        String status = rs.getString("status");
-        boolean approved = "approved".equalsIgnoreCase(status);
-
-        return new Photo(
-                rs.getInt("id"),
-                rs.getString("order_number"),
-                rs.getString("uploaded_by"),
-                status,
-                rs.getTimestamp("uploaded_at").toLocalDateTime(),
-                approved,
-                rs.getString("comment")
-        );
-    }
-
+    /**
+     * Gemmer et nyt foto med status = 'PENDING'.
+     */
     public void save(Photo photo) {
-        String sql = "INSERT INTO photos (order_number, uploaded_by, status, uploaded_at, comment) VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = databaseConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, photo.getOrderNumber());
-            stmt.setString(2, photo.getUploadedBy());
-            stmt.setString(3, photo.getStatus());
-            stmt.setTimestamp(4, Timestamp.valueOf(photo.getUploadedAt()));
-            stmt.setString(5, photo.getComment());
-            stmt.executeUpdate();
-
+        String sql = "INSERT INTO dbo.Photos (order_number, uploaded_by, status, uploaded_at, comment, file_path) " +
+                "VALUES (?, ?, 'PENDING', ?, ?, ?)";
+        try (Connection conn = connect();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, photo.getOrderNumber());
+            ps.setString(2, photo.getUploadedBy());
+            ps.setTimestamp(3, Timestamp.valueOf(photo.getUploadedAt()));
+            ps.setString(4, photo.getComment());
+            ps.setString(5, photo.getFilePath());
+            ps.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("Error in save: " + e.getMessage());
+            throw new RuntimeException("Kunne ikke gemme foto", e);
         }
     }
 
-    public List<Photo> findApprovedPhotos() {
-        List<Photo> photos = new ArrayList<>();
-        String sql = "SELECT * FROM photos WHERE status = 'approved'";
-        try (Connection conn = databaseConnector.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+    /**
+     * Finder alle fotos med status = 'PENDING'.
+     */
+    public List<Photo> findUnapprovedPhotos() {
+        return findByStatus("PENDING");
+    }
 
+    /**
+     * Finder alle fotos med status = 'APPROVED'.
+     */
+    public List<Photo> findApprovedPhotos() {
+        return findByStatus("APPROVED");
+    }
+
+    /**
+     * Generisk find by status.
+     */
+    private List<Photo> findByStatus(String status) {
+        String sql = "SELECT * FROM dbo.Photos WHERE status = ?";
+        List<Photo> result = new ArrayList<>();
+        try (Connection conn = connect();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    result.add(mapResultSetToPhoto(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Kunne ikke hente fotos med status=" + status, e);
+        }
+        return result;
+    }
+
+    /**
+     * Finder alle fotos for en given ordre.
+     */
+    public List<Photo> findByOrderNumber(String orderNumber) {
+        String sql = "SELECT * FROM dbo.Photos WHERE order_number = ?";
+        List<Photo> result = new ArrayList<>();
+        try (Connection conn = connect();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, orderNumber);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    result.add(mapResultSetToPhoto(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Kunne ikke hente fotos for ordre=" + orderNumber, e);
+        }
+        return result;
+    }
+
+    /**
+     * Opdaterer status for et foto (APPROVED/REJECTED).
+     */
+    public void updateStatus(int id, boolean approved, String status) {
+        String sql = "UPDATE dbo.Photos SET status = ?, approved = ? WHERE id = ?";
+        try (Connection conn = connect();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setBoolean(2, approved);
+            ps.setInt(3, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Kunne ikke opdatere status for foto-id=" + id, e);
+        }
+    }
+
+    /**
+     * Henter alle fotos uanset status.
+     */
+    public List<Photo> getAllPhotos() {
+        String sql = "SELECT * FROM dbo.Photos";
+        List<Photo> photos = new ArrayList<>();
+        try (Connection conn = connect();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 photos.add(mapResultSetToPhoto(rs));
             }
-
         } catch (SQLException e) {
-            System.err.println("Error in findApprovedPhotos: " + e.getMessage());
+            throw new RuntimeException("Kunne ikke hente alle fotos", e);
         }
         return photos;
+    }
+
+    /**
+     * Mapper en ResultSet-linje til et Photo-objekt.
+     */
+    private Photo mapResultSetToPhoto(ResultSet rs) throws SQLException {
+        int id = rs.getInt("id");
+        String orderNum = rs.getString("order_number");
+        String uploadedBy = rs.getString("uploaded_by");
+        String status = rs.getString("status");
+        LocalDateTime uploadedAt = rs.getTimestamp("uploaded_at").toLocalDateTime();
+        boolean approved = "APPROVED".equalsIgnoreCase(status);
+        String comment = rs.getString("comment");
+
+        Photo photo = new Photo(
+                id,
+                orderNum,
+                uploadedBy,
+                status,
+                uploadedAt,
+                approved,
+                comment
+        );
+        photo.setFilePath(rs.getString("file_path"));
+        return photo;
     }
 }
+
+
 
 
 
