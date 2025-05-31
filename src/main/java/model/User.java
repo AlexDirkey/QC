@@ -1,5 +1,5 @@
 package model;
-
+//Repræsenterer en bruger. Indeholder ID, brugernavn, password og rolle
 public class User {
     private int id;
     private String username;

@@ -6,10 +6,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import model.Photo;
@@ -18,17 +15,11 @@ import util.OpenCVHelper;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Controller for operatør-brugerfladen: håndter uploads, kamera og gem ordren.
- * Godkend-knap er fjernet.
- */
 public class OperatorController extends BaseController {
 
-    // --- FXML-komponenter ---
     @FXML private ListView<String> pendingOrdersList;
     @FXML private ListView<String> inReviewOrdersList;
     @FXML private ListView<String> completedOrdersList;
@@ -39,17 +30,11 @@ public class OperatorController extends BaseController {
     @FXML private Button saveOrderButton;
     @FXML private Label statusLabel;
 
-    // --- Service og helper ---
     private final OperatorService operatorService = new OperatorService();
-    private final NotificationHelper notifier      = new NotificationHelper(this);
-
-    // --- Internt state ---
+    private final NotificationHelper notifier = new NotificationHelper(this);
     private final List<File> uploadedPhotos = new ArrayList<>();
     private final String currentUser = "demo_user";
 
-    /**
-     * Initialiserer UI: læs lister og slå gem-knap til/fra.
-     */
     @FXML
     protected void initialize() {
         loadOrders();
@@ -60,34 +45,29 @@ public class OperatorController extends BaseController {
     }
 
     private void loadOrders() {
-        // PENDING
         List<Photo> pendingPhotos = operatorService.getPendingPhotos();
+        Map<String, Long> groupedPending = pendingPhotos.stream()
+                .collect(Collectors.groupingBy(Photo::getOrderNumber, Collectors.counting()));
         ObservableList<String> pendingItems = FXCollections.observableArrayList(
-                pendingPhotos.stream()
-                        .map(p -> "ID:" + p.getId() + " | Ordre:" + p.getOrderNumber())
-                        .collect(Collectors.toList())
-        );
+                groupedPending.entrySet().stream()
+                        .map(e -> "Ordre: " + e.getKey() + " | Billeder: " + e.getValue())
+                        .collect(Collectors.toList()));
         pendingOrdersList.setItems(pendingItems);
 
-        // IN_REVIEW
-        List<Photo> inReview = operatorService.getCompletedPhotos().stream()
-                .filter(p -> "IN_REVIEW".equalsIgnoreCase(p.getStatus()))
-                .collect(Collectors.toList());
-        inReviewOrdersList.setItems(FXCollections.observableArrayList(
-                inReview.stream()
-                        .map(p -> "ID:" + p.getId() + " | Ordre:" + p.getOrderNumber())
-                        .collect(Collectors.toList())
-        ));
+        List<Photo> completedPhotos = operatorService.getCompletedPhotos();
+        ObservableList<String> inReviewItems = FXCollections.observableArrayList(
+                completedPhotos.stream()
+                        .filter(p -> "IN_REVIEW".equalsIgnoreCase(p.getStatus()))
+                        .map(p -> "ID: " + p.getId() + " | Ordre: " + p.getOrderNumber())
+                        .collect(Collectors.toList()));
+        inReviewOrdersList.setItems(inReviewItems);
 
-        // DONE
-        List<Photo> done = operatorService.getCompletedPhotos().stream()
-                .filter(p -> "APPROVED".equalsIgnoreCase(p.getStatus()) || "REJECTED".equalsIgnoreCase(p.getStatus()))
-                .collect(Collectors.toList());
-        completedOrdersList.setItems(FXCollections.observableArrayList(
-                done.stream()
-                        .map(p -> "ID:" + p.getId() + " | Ordre:" + p.getOrderNumber() + " | " + p.getStatus())
-                        .collect(Collectors.toList())
-        ));
+        ObservableList<String> doneItems = FXCollections.observableArrayList(
+                completedPhotos.stream()
+                        .filter(p -> "APPROVED".equalsIgnoreCase(p.getStatus()) || "REJECTED".equalsIgnoreCase(p.getStatus()))
+                        .map(p -> "ID: " + p.getId() + " | Ordre: " + p.getOrderNumber() + " | " + p.getStatus())
+                        .collect(Collectors.toList()));
+        completedOrdersList.setItems(doneItems);
     }
 
     @FXML

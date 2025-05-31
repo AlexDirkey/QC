@@ -8,7 +8,10 @@ import java.util.Properties;
 
 public class MailHelper {
 
+    //Sender en email med vedhæftet fil.
+
     public static void sendEmailWithAttachment(String to, String subject, String body, File attachment) throws Exception {
+        //Hardcoded demo-bruger
         final String username = "din.email@gmail.com";
         final String password = "din-app-kode";
 

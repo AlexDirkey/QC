@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import gui.NotificationHelper;
 
+//Controller til rollevalg
 public class RoleSelectionController extends BaseController {
 
     private final NotificationHelper notifier = new NotificationHelper(this);
@@ -27,6 +28,8 @@ public class RoleSelectionController extends BaseController {
         openLoginView(event, "Admin");
     }
 
+    //FXML
+    //Sender brugeren videre til scene, baseret på rolle
     private void openLoginView(ActionEvent event, String role) {
         Stage stage = getStageFromEvent(event);
         try {
