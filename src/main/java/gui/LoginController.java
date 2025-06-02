@@ -8,7 +8,7 @@ public class LoginController extends BaseController {
     private String selectedRole;
     private final NotificationHelper notifier = new NotificationHelper(this);
 
-    /** Modtager rollen fra RoleSelectionController */
+    //Modtager rollen fra Roleselector
     public void setSelectedRole(String role) {
         this.selectedRole = role;
     }

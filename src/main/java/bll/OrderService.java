@@ -6,10 +6,8 @@ import model.Photo;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * OrderService håndterer filtrering og sortering af ordrer.
- * Bruges af både Operator- og QA-controllere.
- */
+
+//Håndterer filtrering og sortering af ordrer
 public class OrderService {
 
     private final PhotoRepository photoRepo;

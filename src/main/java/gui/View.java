@@ -1,9 +1,7 @@
 package gui;
 
-/**
- * Enum der definerer FXML-stier og CSS-sti for de forskellige views.
- * Gør scene-skift mere typesikkert og DRY.
- */
+
+//Enum-class, der definerer FXML-stier og CSS
 public enum View {
     ADMIN("/gui/AdminView.fxml"),
     OPERATOR("/gui/OperatorView.fxml"),
@@ -21,16 +19,14 @@ public enum View {
         this.fxmlPath = fxmlPath;
     }
 
-    /**
-     * @return stien til FXML-filen for dette view
-     */
+
+    // Returnerer stien til FXML
     public String getFxmlPath() {
         return fxmlPath;
     }
 
-    /**
-     * @return stien til fælles CSS-fil
-     */
+
+    //Returnerer stien til CSS
     public String getCssPath() {
         return CSS_PATH;
     }

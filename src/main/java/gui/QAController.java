@@ -23,10 +23,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * Controller til QA-flow, hvor fotos kan godkendes eller afvises
- * og der kan genereres PDF-rapporter med godkendte fotos sendt via e-mail.
- */
+
+//Controller til QA
+
 public class QAController extends BaseController {
 
     @FXML private ListView<String> photoListView;
@@ -37,27 +36,27 @@ public class QAController extends BaseController {
     @FXML private Button viewHistoryButton;
     @FXML private Label statusLabel;
 
-    // Services injected for testbarhed og separation of concerns
+
     private final PhotoService photoService = new PhotoService();
     private final ReportService reportService = new ReportService(photoService);
     private final gui.NotificationHelper notifier = new gui.NotificationHelper(this);
 
     private List<Photo> pendingPhotos;
 
-    /**
-     * Initialiserer controller: loader u-godkendte fotos og sætter listener på ListView.
-     */
+
+    //Initialiserer controller - loader fotos
     @FXML
     public void initialize() {
+
         loadPendingPhotos();
         photoListView.getSelectionModel().selectedIndexProperty()
                 .addListener((obs, oldIdx, newIdx) -> onPhotoSelected());
     }
 
-    /**
-     * Henter alle u-godkendte fotos fra service og viser dem i listen.
-     */
+
+    //Henter fotos og viser dem i listen
     private void loadPendingPhotos() {
+
         pendingPhotos = photoService.getUnapprovedPhotos();
         ObservableList<String> display = FXCollections.observableArrayList();
         for (Photo p : pendingPhotos) {
@@ -69,9 +68,8 @@ public class QAController extends BaseController {
         statusLabel.setText("");
     }
 
-    /**
-     * Vis preview for det valgte foto eller vis fejl.
-     */
+
+    // Viser et photos, eller en fejl
     private void onPhotoSelected() {
         int idx = photoListView.getSelectionModel().getSelectedIndex();
         if (idx < 0 || idx >= pendingPhotos.size()) return;
@@ -87,9 +85,8 @@ public class QAController extends BaseController {
         }
     }
 
-    /**
-     * Opdaterer status for valgt foto og refresher listen.
-     */
+
+    //Opdaterer et photos status
     @FXML
     private void onApproveButtonClick() {
         updatePhotoStatus(true);
@@ -102,7 +99,9 @@ public class QAController extends BaseController {
 
     @FXML
     protected void navigateBackToRoleSelection(ActionEvent event) {
+
         // Gå tilbage til rollevalg
+
         changeScene(View.ROLE_SELECTION, getStageFromEvent(event));
     }
 
@@ -124,9 +123,8 @@ public class QAController extends BaseController {
         }
     }
 
-    /**
-     * Genererer og sender PDF-rapport til angivet e-mail.
-     */
+
+    //Generer en pdf rapport og sender til valgte mail (Mail ikke defineret)
     @FXML
     private void onGenerateReportClick() {
         TextInputDialog dialog = new TextInputDialog();
@@ -136,6 +134,7 @@ public class QAController extends BaseController {
 
         String email = dialog.showAndWait().orElse(null);
         if (email == null || email.isBlank()) {
+
             notifier.showWarning("Ingen e-mail", "E-mailadresse er påkrævet.");
             return;
         }
@@ -149,11 +148,11 @@ public class QAController extends BaseController {
         }
     }
 
-    /**
-     * Åbner historik-vinduet for den valgte ordre.
-     */
+
+    // Åbner en historik visning af den valgte ordre
     @FXML
     private void onViewHistoryClick() {
+
         int idx = photoListView.getSelectionModel().getSelectedIndex();
         if (idx < 0) {
             notifier.showWarning("Ingen valgt", "Vælg en ordre først.");

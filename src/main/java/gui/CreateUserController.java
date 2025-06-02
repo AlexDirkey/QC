@@ -10,11 +10,10 @@ import gui.NotificationHelper;
 import bll.AuthService;
 import gui.View;
 
-/**
- * Controller til at oprette nye brugere manuelt gennem GUI.
- * Benytter InputValidator til validering og NotificationHelper til beskeder.
- */
+
+//Controller til at oprette nye brugere
 public class CreateUserController extends BaseController {
+
 
     @FXML private TextField usernameField;      // Inputfelt til brugernavn
     @FXML private PasswordField passwordField;  // Inputfelt til password
@@ -24,10 +23,8 @@ public class CreateUserController extends BaseController {
     private final AuthService authService = new AuthService();
     private final NotificationHelper notifier = new NotificationHelper(this);
 
-    /**
-     * Kaldes når 'Create'-knappen trykkes.
-     * Validerer med InputValidator og opretter bruger via AuthService.
-     */
+
+    //Bliver kaldt, når create-knappen trykkes på, og opretter med AuthService
     @FXML
     private void onCreateButtonClick() {
         String username = usernameField.getText();
@@ -50,17 +47,15 @@ public class CreateUserController extends BaseController {
         }
     }
 
-    /**
-     * Skifter tilbage til AdminView, når 'Back'-knappen trykkes.
-     */
+
+    //Skifter tilbage til AdminView, når backknappen trykkes på
     @FXML
     private void onBackButtonClick(ActionEvent event) {
         changeScene(View.ADMIN, getStageFromEvent(event));
     }
 
-    /**
-     * Rydder alle inputfelter.
-     */
+
+    //Rydder alle inputfelter
     private void clearForm() {
         usernameField.clear();
         passwordField.clear();

@@ -44,7 +44,7 @@ public class AssignRoleController extends BaseController {
     }
 
 
-    //FJERN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //Kan logge ind, uden at skulle bruge username eller passwords
     private void handleBypassLogin(String role, Stage stage) {
         switch (role) {
             case "Admin"    -> changeScene(View.ADMIN, stage);

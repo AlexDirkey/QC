@@ -86,9 +86,8 @@ public class AuthService {
         }
     }
 
-    /**
-     * Enkel undtagelse-klasse til auth-fejl.
-     */
+
+     // Enkel undtagelse-klasse til auth-fejl.
     public static class AuthException extends Exception {
         public AuthException(String message) {
             super(message);

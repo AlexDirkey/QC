@@ -11,7 +11,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 
 /**
- * Hjælpeklasse til OpenCV-kameraopsætning og konvertering til JavaFX Image.
+ * Hjælpeklasse til OpenCV-kameraopsætning
  */
 public class OpenCVHelper {
     private static OpenCVHelper instance;

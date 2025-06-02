@@ -12,10 +12,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * ReportService håndterer generering af PDF-rapporter
- * og afsendelse via e-mail.
- */
+
+//Håndterer PDF og email-afsendelse
 public class ReportService {
     private static final PDFont FONT = PDType1Font.HELVETICA;
     private static final float FONT_SIZE = 12f;
@@ -25,29 +23,25 @@ public class ReportService {
 
     private final PhotoService photoService;
 
-    /**
-     * Dependency injection af PhotoService.
-     * @param photoService service til at hente fotos
-     */
+
+    //Bruges til at hente fotos
     public ReportService(PhotoService photoService) {
         this.photoService = photoService;
     }
 
-    /**
-     * Genererer en PDF-rapport med alle godkendte fotos
-     * og sender den til den angivne e-mail.
-     *
-     * @param email modtagerens e-mailadresse
-     * @throws IOException ved IO- eller PDFBox-fejl
-     */
+
+    //Generer en pdf rapport med godkendte fotos, og sender den videre til email
     public void generateAndSendApprovedReport(String email) throws Exception {
+
         List<Photo> approved = photoService.getApprovedPhotos();
         if (approved.isEmpty()) {
+
             throw new IllegalStateException("Ingen godkendte billeder at rapportere");
         }
 
         File pdf = createPdfReport(approved);
         MailHelper.sendEmailWithAttachment(
+
                 email,
                 "Din godkendte ordrerapport",
                 "Hej! Vedhæftet er din godkendte ordrerapport.",
@@ -55,19 +49,16 @@ public class ReportService {
         );
     }
 
-    /**
-     * Genererer PDF-rapportfil og returnerer fil-reference.
-     *
-     * @param photos liste af godkendte Photo-objekter
-     * @return den gemte PDF-fil
-     * @throws IOException ved PDFBox-fejl
-     */
+    //Generer en pdf med parametre (font, etc), og returnerer, hvor pdf-filen ender, når den hentes
     private File createPdfReport(List<Photo> photos) throws IOException {
+
         try (PDDocument doc = new PDDocument()) {
+
             PDPage page = new PDPage();
             doc.addPage(page);
 
             try (PDPageContentStream cs = new PDPageContentStream(doc, page)) {
+
                 cs.setFont(FONT, FONT_SIZE);
                 cs.beginText();
                 cs.setLeading(FONT_SIZE * 1.2f);
@@ -78,6 +69,7 @@ public class ReportService {
                 cs.newLine();
 
                 for (Photo p : photos) {
+
                     String line = String.format(
                             "Ordre: %s | Bruger: %s | Dato: %s",
                             p.getOrderNumber(),

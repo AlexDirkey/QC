@@ -1,14 +1,12 @@
 package gui.util;
 
-/**
- * Hjælpeklasse til validering af brugerinput.
- */
+
+//Hjælperclass til brugerinput
 public final class InputManager {
     private InputManager() { }
 
-    /**
-     * Tjekker at alle værdier ikke er null eller tomme.
-     */
+
+    //Checker, om alle værdier ikke er tomme. Eller null
     public static boolean isFilled(String... values) {
         for (String v : values) {
             if (v == null || v.isBlank()) {

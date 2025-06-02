@@ -3,33 +3,69 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.*?>
 
-<VBox fx:controller="gui.OperatorController" alignment="CENTER" spacing="15.0" styleClass="background"
-      xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" prefWidth="600" prefHeight="600">
+<VBox fx:controller="gui.OperatorController"
+      alignment="CENTER"
+      spacing="15.0"
+      styleClass="background"
+      xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      prefWidth="600"
+      prefHeight="800">
+
     <Label text="Operator View" styleClass="header-label"/>
+
+
     <Label text="Uløste ordrer" styleClass="standard-label"/>
-    <ListView fx:id="pendingOrdersList" prefHeight="100" prefWidth="400"/>
+
+    <ListView fx:id="pendingOrdersList"
+              prefWidth="500"
+              prefHeight="200"/>
+
+    <!-- Under review -->
     <Label text="Under review" styleClass="standard-label"/>
-    <ListView fx:id="inReviewOrdersList" prefHeight="100" prefWidth="400"/>
+    <ListView fx:id="inReviewOrdersList"
+              prefWidth="500"
+              prefHeight="200"/>
+
+    <!-- Færdige ordrer -->
     <Label text="Færdige ordrer" styleClass="standard-label"/>
-    <ListView fx:id="completedOrdersList" prefHeight="100" prefWidth="400"/>
-    <TextField fx:id="orderNumberField" promptText="Indtast ordrenummer"/>
-    <TextField fx:id="commentField" promptText="Skriv kommentar til billede"/>
-    <Label fx:id="statusLabel" text="" styleClass="standard-label"/>
+    <ListView fx:id="completedOrdersList"
+              prefWidth="500"
+              prefHeight="200"/>
+
+
+    <TextField fx:id="orderNumberField"
+               promptText="Indtast ordrenummer"
+               prefWidth="400"/>
+    <TextField fx:id="commentField"
+               promptText="Skriv kommentar til billede"
+               prefWidth="400"/>
+
+
+    <Label fx:id="statusLabel"
+           text=""
+           styleClass="standard-label"/>
 
     <Button fx:id="captureButton"
             text="Tag billede"
             onAction="#onCameraCaptureClick"
-            styleClass="action-button"/>
+            styleClass="action-button"
+            prefWidth="200"/>
     <Button fx:id="uploadButton"
             text="Upload billede"
             onAction="#onUploadButtonClick"
-            styleClass="action-button"/>
-    <Button text="Log ud" onAction="#onLogoutButtonClick" styleClass="logout-button"/>
+            styleClass="action-button"
+            prefWidth="200"/>
+
+    <Button text="Log ud"
+            onAction="#onLogoutButtonClick"
+            styleClass="logout-button"/>
 
     <Button fx:id="saveOrderButton"
             text="Gem ordren"
             onAction="#onSaveOrderClick"
             disable="true"
-            styleClass="action-button"/>
+            styleClass="action-button"
+            prefWidth="200"/>
 
 </VBox>

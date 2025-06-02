@@ -8,53 +8,55 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Service-lag for operatør-logic: henter ordrer og opdaterer status,
- * samt gemmer nye ordrer med fotos.
- */
-public class OperatorService {
-    private final PhotoRepository repo = new PhotoRepository();
 
-    /**
-     * Gemmer en ordre med tilhørende fotos og kommentar.
-     */
-    public void saveOrder(String orderNumber, List<File> photos, String comment, String uploadedBy) {
-        List<Photo> toSave = photos.stream()
-                .map(file -> {
-                    Photo p = new Photo(
-                            0,
-                            orderNumber,
-                            uploadedBy,
-                            "PENDING",
-                            LocalDateTime.now(),
-                            false,
-                            comment
-                    );
-                    p.setFilePath(file.getAbsolutePath());
-                    return p;
+//Gemmer fotoes, og i forskellige kategori
+public class OperatorService {
+    private final PhotoRepository photoRepository = new PhotoRepository();
+
+    //Gemmer en ordre. Som udgangspunkt 'pendign'
+    public void saveOrder(String orderNumber, List<File> imageFiles, String comment, String uploadedBy) throws Exception {
+        for (File imageFile : imageFiles) {
+            Photo photo = new Photo(
+                    0,
+                    orderNumber,
+                    uploadedBy,
+                    "PENDING",
+                    LocalDateTime.now(),
+                    false,
+                    comment
+            );
+            photo.setFilePath(imageFile.getAbsolutePath());
+            photoRepository.save(photo);
+        }
+    }
+
+    //Henter photos med 'pending'
+    public List<Photo> getPendingPhotos() {
+        return photoRepository.findUnapprovedPhotos();
+    }
+
+   //Henter photos med 'in-review'
+    public List<Photo> getInReviewPhotos() {
+        return photoRepository.getAllPhotos().stream()
+                .filter(p -> "IN_REVIEW".equalsIgnoreCase(p.getStatus()))
+                .collect(Collectors.toList());
+    }
+
+    //Henter photos, som er'approved', eller 'rejected'
+    public List<Photo> getCompletedPhotos() {
+
+        return photoRepository.getAllPhotos().stream()
+                .filter(p -> {
+                    String st = p.getStatus();
+                    return "APPROVED".equalsIgnoreCase(st)
+                            || "REJECTED".equalsIgnoreCase(st);
                 })
                 .collect(Collectors.toList());
-        toSave.forEach(repo::save);
     }
 
-    /**
-     * Henter alle fotos med status = 'PENDING'.
-     */
-    public List<Photo> getPendingPhotos() {
-        return repo.findUnapprovedPhotos();
-    }
 
-    /**
-     * Henter alle fotos med status = 'APPROVED' eller 'REJECTED'.
-     */
-    public List<Photo> getCompletedPhotos() {
-        return repo.findApprovedPhotos();
-    }
-
-    /**
-     * Marker en foto-id som "IN_REVIEW".
-     */
+    //Markerer t photo, så QA kan behandle den
     public void markInReview(int photoId) {
-        repo.updateStatus(photoId, false, "IN_REVIEW");
+        photoRepository.updateStatusToInReview(photoId);
     }
 }

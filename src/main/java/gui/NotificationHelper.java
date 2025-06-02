@@ -1,8 +1,7 @@
 package gui;
 
-/**
- * Hjælpeklasse til at vise ensartede dialoger.
- */
+
+//Hjælperklasse til dialoger
 public class NotificationHelper {
     private final BaseController controller;
 
@@ -10,12 +9,12 @@ public class NotificationHelper {
         this.controller = controller;
     }
 
-    // Wrapper til generisk warning
+    // Wrapper til  warning
     public void showWarning(String title, String message) {
         controller.showWarning(title, message);
     }
 
-    // Wrapper til generisk info
+    // Wrapper til info
     public void showInfo(String title, String message) {
         controller.showInfo(title, message);
     }

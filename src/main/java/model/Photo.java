@@ -2,10 +2,8 @@ package model;
 
 import java.time.LocalDateTime;
 
-/**
- * Repræsenterer et billede uploadet til en specifik ordre.
- * Indeholder metadata som bruger, status og godkendelse.
- */
+
+//Denne class repræsenterer et photo
 public class Photo {
     private int id;
     private String orderNumber;
