@@ -26,7 +26,7 @@
     <HBox spacing="15" alignment="CENTER">
         <Button text="Opret bruger" onAction="#onCreateUserClick" styleClass="action-button"/>
         <Button text="Slet bruger" onAction="#onDeleteUserClick" styleClass="action-button"/>
-        <Button text="Tildel rolle" onAction="#onAssignRoleClick" styleClass="action-button"/>
+        <Button text="Opdater rolle" onAction="#onAssignRoleClick" styleClass="action-button"/>
     </HBox>
 
     <Button text="Log ud" onAction="#onLogoutClick" styleClass="logout-button"/>

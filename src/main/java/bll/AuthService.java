@@ -29,8 +29,8 @@ public class AuthService {
     /**
      * Forsøger at logge en bruger ind.
      *
-     * @param username Brugerens brugernavn
-     * @param password Brugerens password
+     *  username Brugerens brugernavn
+     *  password Brugerens password
      * @throws AuthException hvis brugeren ikke findes eller login-fejl
      */
     public void authenticate(String username, String password) throws AuthException {
@@ -75,9 +75,9 @@ public class AuthService {
         userRepository.deleteByUsername(username);
     }
 
-    /**
-     * Ændrer rolle for en eksisterende bruger.
-     */
+
+     // Ændrer rolle for en eksisterende bruger.
+
     public void assignRoleToUser(String username, String newRole) {
         User user = userRepository.findByUsername(username);
         if (user != null) {
@@ -87,10 +87,12 @@ public class AuthService {
     }
 
 
-     // Enkel undtagelse-klasse til auth-fejl.
+     // Undtagelse-klasse til auth-fejl.
     public static class AuthException extends Exception {
         public AuthException(String message) {
             super(message);
         }
     }
 }
+
+

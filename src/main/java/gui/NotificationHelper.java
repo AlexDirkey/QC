@@ -42,4 +42,7 @@ public class NotificationHelper {
     public void warnSelectUserAndRole() {
         controller.showWarning("Manglende valg", "Vælg både en bruger og en rolle.");
     }
+    public void infoRoleAssigned(String username, String role) {
+        showInfo("Bruger opdateret", username + " er nu " + role);
+    }
 }

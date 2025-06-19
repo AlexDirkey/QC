@@ -78,16 +78,19 @@ public class AdminController extends BaseController {
 
     @FXML
     private void onAssignRoleClick(ActionEvent event) {
-
         String sel = userListView.getSelectionModel().getSelectedItem();
         String r   = roleComboBox.getValue();
-        if (!InputManager.isFilled(sel, r)) {
 
-            notifier.warnSelectUserAndRole(); return;
+        if (!InputManager.isFilled(sel, r)) {
+            notifier.warnSelectUserAndRole();
+            return;
         }
+
         authService.assignRoleToUser(sel, r);
-        // evt. notifier.infoRoleAssigned(sel, r);
+        notifier.infoRoleAssigned(sel, r); // tilføj denne i NotificationHelper
+        roleComboBox.getSelectionModel().clearSelection();
     }
+
 
     // Håndterer 'log ud', og skifter tilbage til "forsiden", roleSelection
     @FXML
