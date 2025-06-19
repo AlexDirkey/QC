@@ -5,34 +5,21 @@ import model.User;
 import org.mindrot.jbcrypt.BCrypt;
 import java.util.List;
 
-/**
- * AuthService håndterer login og brugeradministration.
- * Indeholder en indlejret undtagelse for auth-fejl.
- */
+// Authservice håndterer login, oprettelse og administration er brugere
 public class AuthService {
     private final UserRepository userRepository;
 
-    /**
-     * Standardkonstruktør, som bruger en ny UserRepository.
-     */
+    //Contructor, der opretter et UserRepository
     public AuthService() {
         this(new UserRepository());
     }
 
-    /**
-     * Dependency injection af UserRepository for bedre testbarhed.
-     */
+    // Construktor med injection. Brugt til tests
     public AuthService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
-    /**
-     * Forsøger at logge en bruger ind.
-     *
-     *  username Brugerens brugernavn
-     *  password Brugerens password
-     * @throws AuthException hvis brugeren ikke findes eller login-fejl
-     */
+    // Forsøger at logge en bruger ind
     public void authenticate(String username, String password) throws AuthException {
         User user = userRepository.findByUsername(username);
         if (user == null) {
@@ -43,40 +30,32 @@ public class AuthService {
         }
     }
 
-    /**
-     * Opretter en ny bruger med hashet password.
-     */
+    // Opretter en ny bruger med et hashet password
     public void addUser(String username, String password, String role) {
         String hash = BCrypt.hashpw(password, BCrypt.gensalt());
         User user = new User(0, username, hash, role);
         userRepository.save(user);
     }
 
-    /**
-     * Tjekker om et brugernavn allerede er i brug.
-     */
+    //Checker, om brugernavnet allerede er i brug
     public boolean userExists(String username) {
         return userRepository.findByUsername(username) != null;
     }
 
-    /**
-     * Returnerer alle brugernavne i systemet.
-     */
+    //Returnerer alle brugernavne
     public List<String> getAllUsernames() {
         return userRepository.findAll().stream()
                 .map(User::getUsername)
                 .toList();
     }
 
-    /**
-     * Sletter en bruger ud fra brugernavnet.
-     */
+    // Sletter en bruger
     public void deleteUser(String username) {
         userRepository.deleteByUsername(username);
     }
 
 
-     // Ændrer rolle for en eksisterende bruger.
+     // Ændrer/opdaterer rolle for en eksisterende bruger.
 
     public void assignRoleToUser(String username, String newRole) {
         User user = userRepository.findByUsername(username);

@@ -8,12 +8,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
-//Gemmer fotoes, og i forskellige kategori
+//Gemmer fotos, og inddeler dem i kategorier
 public class OperatorService {
     private final PhotoRepository photoRepository = new PhotoRepository();
+    private final PhotoService photoService = new PhotoService(); //
 
-    //Gemmer en ordre. Som udgangspunkt 'pendign'
+
+    //Gemmer en ny ordre med status pending
     public void saveOrder(String orderNumber, List<File> imageFiles, String comment, String uploadedBy) throws Exception {
         for (File imageFile : imageFiles) {
             Photo photo = new Photo(
@@ -30,32 +31,33 @@ public class OperatorService {
         }
     }
 
-    //Henter photos med 'pending'
+
+    // Henter fotos, der er pending
     public List<Photo> getPendingPhotos() {
-        return photoRepository.findUnapprovedPhotos();
+        return photoService.getPhotosWithStatus("PENDING");
     }
 
-   //Henter photos med 'in-review'
+
+    // Henter fotos, der er in review
     public List<Photo> getInReviewPhotos() {
         return photoRepository.getAllPhotos().stream()
                 .filter(p -> "IN_REVIEW".equalsIgnoreCase(p.getStatus()))
                 .collect(Collectors.toList());
     }
 
-    //Henter photos, som er'approved', eller 'rejected'
-    public List<Photo> getCompletedPhotos() {
 
+    //Henter fotos, der har status approved eller rejected
+    public List<Photo> getCompletedPhotos() {
         return photoRepository.getAllPhotos().stream()
                 .filter(p -> {
                     String st = p.getStatus();
-                    return "APPROVED".equalsIgnoreCase(st)
-                            || "REJECTED".equalsIgnoreCase(st);
+                    return "APPROVED".equalsIgnoreCase(st) || "REJECTED".equalsIgnoreCase(st);
                 })
                 .collect(Collectors.toList());
     }
 
 
-    //Markerer t photo, så QA kan behandle den
+    //Markerer et photo til at være in-review
     public void markInReview(int photoId) {
         photoRepository.updateStatusToInReview(photoId);
     }

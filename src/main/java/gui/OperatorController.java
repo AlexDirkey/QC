@@ -75,7 +75,6 @@ public class OperatorController extends BaseController {
                         .map(e -> "Ordre: " + e.getKey() + " | Billeder: " + e.getValue())
                         .collect(Collectors.toList())
         );
-        pendingOrdersList.setItems(pendingItems);
 
         // 2 HENT ALLE IN_REVIEW‐FOTOS
         List<Photo> inReview = operatorService.getInReviewPhotos();
@@ -101,7 +100,7 @@ public class OperatorController extends BaseController {
     }
 
 
-    //Åbner Filechooser, og lader brugeren vælge et billede fra den fysiske enhed
+    //Åbner Filechooser, og lader brugeren vælge et billede fra dsin fysiske enhed
     @FXML
     protected void onUploadButtonClick(ActionEvent event) {
         if (uploadedPhotos.size() >= 5) {

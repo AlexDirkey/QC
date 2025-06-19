@@ -12,10 +12,7 @@ public class DataBaseConnector {
     private static final String USER = "CSe2024a_e_0"; //
     private static final String PASSWORD = "CSe2024aE0!24"; //
 
-    /**
-     * Returnerer en SQL-forbindelse.
-     * @return Connection objekt, hvis succes, ellers null
-     */
+
     //Returnerer en SQL forbindelse - returnerer nuull, hvis ingen forbindelse
     public static Connection getConnection() {
 

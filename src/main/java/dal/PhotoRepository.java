@@ -28,7 +28,7 @@ public class PhotoRepository {
     public void save(Photo photo) {
 
         String sql = "INSERT INTO dbo.Photos (order_number, uploaded_by, status, uploaded_at, comment, file_path) " +
-                "VALUES (?, ?, 'PENDING', ?, ?, ?)";
+                "VALUES (?, ?, 'in_review', ?, ?, ?)";
         try (Connection conn = connect();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -46,16 +46,16 @@ public class PhotoRepository {
 
     //Finder photos med 'pending'
     public List<Photo> findUnapprovedPhotos() {
-        return findByStatus("PENDING");
+        return findByStatus("IN_REVIEW");
     }
 
-   //Finder phtos med 'approved'
+   //Finder photos med 'approved'
     public List<Photo> findApprovedPhotos() {
         return findByStatus("APPROVED");
     }
 
     //Finder et photo med status
-    private List<Photo> findByStatus(String status) {
+    public List<Photo> findByStatus(String status) {
 
         String sql = "SELECT * FROM dbo.Photos WHERE status = ?";
         List<Photo> result = new ArrayList<>();

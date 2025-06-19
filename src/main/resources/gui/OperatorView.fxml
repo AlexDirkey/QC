@@ -15,19 +15,13 @@
     <Label text="Operator View" styleClass="header-label"/>
 
 
-    <Label text="Uløste ordrer" styleClass="standard-label"/>
 
-    <ListView fx:id="pendingOrdersList"
-              prefWidth="500"
-              prefHeight="200"/>
-
-    <!-- Under review -->
     <Label text="Under review" styleClass="standard-label"/>
     <ListView fx:id="inReviewOrdersList"
               prefWidth="500"
               prefHeight="200"/>
 
-    <!-- Færdige ordrer -->
+
     <Label text="Færdige ordrer" styleClass="standard-label"/>
     <ListView fx:id="completedOrdersList"
               prefWidth="500"

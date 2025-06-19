@@ -5,45 +5,43 @@ import model.Photo;
 
 import java.util.List;
 
-
 //Henter godkendte og ikke godkendte ordrer, og opdaterer deres status
 public class PhotoService {
     private final PhotoRepository repo = new PhotoRepository();
 
-    /**
-     * Henter alle fotos med status = 'PENDING' eller 'IN_REVIEW' (dvs. endnu ikke godkendte).
-     */
+
+    // henter alle fotos, der endnu ikke er godkendte
     public List<Photo> getUnapprovedPhotos() {
         return repo.findUnapprovedPhotos();
     }
 
-    /**
-     * Henter alle fotos med status = 'APPROVED'.
-     */
+
+    // Henter alle fotos med status approved
     public List<Photo> getApprovedPhotos() {
         return repo.findApprovedPhotos();
     }
 
-    /**
-     * Opdaterer fotoets approved-flag (true/false) og sætter status til 'APPROVED' eller 'REJECTED'.
-     */
+
+    // opdaterer fotos til approved eller rejected
     public void updatePhotoStatus(int photoId, boolean approved) {
         repo.updateStatus(photoId, approved);
     }
 
-    /**
-     * Henter alle fotos (uanset status).
-     * Bruges fx, hvis man ønsker at filtrere IN_REVIEW, APPROVED, REJECTED i controlleren.
-     */
+
+    //Henter alle fotos, uanset status - bruges til at filtrere
     public List<Photo> getAll() {
         return repo.getAllPhotos();
     }
 
-    /**
-     * Henter alle fotos for en given ordre (bruges fx til historik-vinduet).
-     */
+
+    //Henter fotos til en given ordre
     public List<Photo> getPhotosByOrderNumber(String orderNumber) {
         return repo.findByOrderNumber(orderNumber);
     }
-}
 
+
+    //Henter photos, der har en status
+    public List<Photo> getPhotosWithStatus(String status) {
+        return repo.findByStatus(status);
+    }
+}

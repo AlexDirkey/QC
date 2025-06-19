@@ -7,7 +7,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-
+//Superclass, som QA- Operator- og AdminControllerne arver fra (inheritance)
 public abstract class BaseController {
 
     //Skifter scene

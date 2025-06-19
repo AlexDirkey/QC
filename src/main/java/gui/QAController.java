@@ -60,8 +60,9 @@ public class QAController extends BaseController {
         pendingPhotos = photoService.getUnapprovedPhotos();
         ObservableList<String> display = FXCollections.observableArrayList();
         for (Photo p : pendingPhotos) {
-            display.add(String.format("Ordre: %s | Bruger: %s | %s",
-                    p.getOrderNumber(), p.getUploadedBy(), p.getUploadedAt()));
+            display.add(String.format("Ordre: %s | Bruger: %s | %s | Kommentar: %s",
+                    p.getOrderNumber(), p.getUploadedBy(), p.getUploadedAt(),
+                    p.getComment() !=null && !p.getComment().isBlank() ? p.getComment() : "Ingen kommentarer"));
         }
         photoListView.setItems(display);
         photoPreview.setImage(null);

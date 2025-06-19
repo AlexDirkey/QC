@@ -21,7 +21,7 @@ public class LoginController extends BaseController {
             return;
         }
         try {
-            // Konverter String → enum og skift scene
+            // Konverterer String → enum og skift scene
             View target = View.valueOf(selectedRole.toUpperCase());
             changeScene(target, getStageFromEvent(event));
         } catch (IllegalArgumentException e) {

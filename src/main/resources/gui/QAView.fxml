@@ -10,7 +10,7 @@
       alignment="CENTER" spacing="15.0" prefWidth="800" prefHeight="650"
       styleClass="background">
 
-    <Label text="QA Billedgodkendelse" styleClass="header-label"/>
+    <Label text="QA Godkendelse" styleClass="header-label"/>
 
     <ListView fx:id="photoListView" prefWidth="600" prefHeight="120"/>
 
