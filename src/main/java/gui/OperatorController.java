@@ -2,10 +2,12 @@ package gui;
 
 import bll.OperatorService;
 import gui.NotificationHelper;
+import gui.util.SessionService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.concurrent.Task;
 import javafx.scene.control.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -15,43 +17,53 @@ import util.OpenCVHelper;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
+// Controller for operatorens GUI.
+// Operator kan uploade billeder (enten fra fil eller kamera),
+// knytte dem til et ordrenummer og gemme ordren i systemet.
+// Viser samtidig lister over ordre-statusser (PENDING, IN_REVIEW, COMPLETED)
 
-
-//Controller for operator
 public class OperatorController extends BaseController {
 
-    //  FXML-komponenter
-    @FXML private ListView<String> pendingOrdersList;     // Viser pr. ordrenr. + antal billeder (PENDING)
-    @FXML private ListView<String> inReviewOrdersList;    // Viser ID + ordrenr. på IN_REVIEW‐fotos
-    @FXML private ListView<String> completedOrdersList;   // Viser ID + ordrenr. + status på APPROVED/REJECTED
-    @FXML private TextField  orderNumberField;            // Input‐felt til ordrenummer
-    @FXML private TextField  commentField;                // Input‐felt til kommentar
-    @FXML private Button     captureButton;               // “Tag billede”‐knap
-    @FXML private Button     uploadButton;                // “Upload billede”‐knap
-    @FXML private Button     saveOrderButton;             // “Gem ordren”‐knap
-    @FXML private Label      statusLabel;                 // Kan vise statusbeskeder
+    // ===== FXML-felter (matcher OperatorView.fxml) =====
+    @FXML private TextField orderNumberField;    // Inputfelt til ordrenummer
+    @FXML private TextField commentField;        // Inputfelt til evt. kommentar
+    @FXML private Button   saveOrderButton;      // Knappen til at gemme ordren
+    @FXML private Button   captureButton;        // Knappen til at tage et billede via kamera
+    @FXML private Label    statusLabel;          // Statusbeskeder til operatoren
 
-    // bll
-    private final OperatorService       operatorService  = new OperatorService();
-    private final NotificationHelper    notifier         = new NotificationHelper(this);
-    private final List<File>            uploadedPhotos   = new ArrayList<>();
-    private final String                currentUser      = "demo_user"; // TODO: Erstat med rigtig bruger
+    // Tre lister i GUI’en → opdelt efter status
+    @FXML private ListView<String> pendingOrdersList;    // Ordrer, der er pending (uploadet men ikke reviewet)
+    @FXML private ListView<String> inReviewOrdersList;   // Ordrer, der er sendt til QA
+    @FXML private ListView<String> completedOrdersList;  // Ordrer, der er færdigbehandlet (APPROVED/REJECTED)
 
 
-    // Kaldes efter at view er loadet, og FXMl er forbundet
+    private final OperatorService    operatorService  = new OperatorService(); // Logik for operator
+    private final NotificationHelper notifier         = new NotificationHelper(this); // Dialog-hjælper
+    private final List<File>         uploadedPhotos   = new ArrayList<>(); // Midlertidig liste af valgte billeder
+    private String                   currentUser; // Hentes fra session (bruger der er logget ind)
+
+    // Initialisering efter FXML er loadet
+
     @FXML
     protected void initialize() {
+        // Hent brugernavn fra singleton SessionService
+
+        currentUser = SessionService.getInstance().currentUsername();
+
+        // Indlæs ordre-lister ved start
+
         loadOrders();
 
-        // Deaktiver “Gem ordren”‐knappen til at begynde med
+        // Gem-knap deaktiveret indtil vi har input (vises som sløret)
+
         saveOrderButton.setDisable(true);
 
-        // Aktiver kun “Gem ordren” når der både er tekst i orderNumberField
-        // og mindst ét billede i uploadedPhotos
+        // Tilføj listener: aktiver “Gem ordren”, når der både er ordrenummer og mindst ét billede
+
         orderNumberField.textProperty().addListener((obs, oldV, newV) ->
                 saveOrderButton.setDisable(
                         orderNumberField.getText().trim().isEmpty() || uploadedPhotos.isEmpty()
@@ -59,26 +71,20 @@ public class OperatorController extends BaseController {
         );
     }
 
+    // Henter fotos fra DB via OperatorService og opdeler i lister i GUI
 
-    //Indlæser alle photos fra database - og inddeler demi kategorier
     private void loadOrders() {
-
-        // --- 1) HENT ALLE PENDING‐FOTOS og grupér pr. ordrenummer ---
-        List<Photo> pendingPhotos = operatorService.getPendingPhotos();
-        // Gruppér på ordrenummer og tæl antal fotos pr. ordre
-        var groupedPending = pendingPhotos.stream()
-                .collect(Collectors.groupingBy(Photo::getOrderNumber, Collectors.counting()));
-
-        // Byg en liste af tekstlinjer: "Ordre: <ordrenr> | Billeder: <antal>"
+        // 1) Pending
+        List<Photo> pending = operatorService.getPendingPhotos();
         ObservableList<String> pendingItems = FXCollections.observableArrayList(
-                groupedPending.entrySet().stream()
-                        .map(e -> "Ordre: " + e.getKey() + " | Billeder: " + e.getValue())
+                pending.stream()
+                        .map(p -> "ID: " + p.getId() + " | Ordre: " + p.getOrderNumber())
                         .collect(Collectors.toList())
         );
+        pendingOrdersList.setItems(pendingItems);
 
-        // 2 HENT ALLE IN_REVIEW‐FOTOS
+        // 2) In review
         List<Photo> inReview = operatorService.getInReviewPhotos();
-        // Byg en liste af tekstlinjer: "ID: <id> | Ordre: <ordrenr>"
         ObservableList<String> inReviewItems = FXCollections.observableArrayList(
                 inReview.stream()
                         .map(p -> "ID: " + p.getId() + " | Ordre: " + p.getOrderNumber())
@@ -86,9 +92,8 @@ public class OperatorController extends BaseController {
         );
         inReviewOrdersList.setItems(inReviewItems);
 
-        // HENT ALLE FÆRDIGE (APPROVED/REJECTED)
+        // 3) Completed (APPROVED/REJECTED)
         List<Photo> done = operatorService.getCompletedPhotos();
-        // Byg en liste af tekstlinjer: "ID: <id> | Ordre: <ordrenr> | <status>"
         ObservableList<String> doneItems = FXCollections.observableArrayList(
                 done.stream()
                         .map(p -> "ID: " + p.getId()
@@ -99,38 +104,34 @@ public class OperatorController extends BaseController {
         completedOrdersList.setItems(doneItems);
     }
 
+    // Brugeren vælger en eksisterende billedfil på sin enhed
 
-    //Åbner Filechooser, og lader brugeren vælge et billede fra dsin fysiske enhed
     @FXML
     protected void onUploadButtonClick(ActionEvent event) {
         if (uploadedPhotos.size() >= 5) {
             notifier.showWarning("Maks billeder nået", "Du kan kun uploade op til 5 billeder.");
             return;
         }
-        String orderNumber = orderNumberField.getText().trim();
-        if (orderNumber.isEmpty()) {
-            notifier.showWarning("Manglende ordrenummer", "Indtast ordrenummer før upload.");
-            return;
-        }
 
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Vælg billede til upload");
-        chooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Billeder", "*.png", "*.jpg", "*.jpeg")
+        chooser.setTitle("Vælg billede");
+        chooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Billeder", "*.jpg", "*.jpeg", "*.png")
         );
 
-        Stage stage = (Stage) uploadButton.getScene().getWindow();
-        File pickedFile = chooser.showOpenDialog(stage);
+        // Åbn filvælger i aktuelt vindue
+
+        File pickedFile = chooser.showOpenDialog(((Stage) saveOrderButton.getScene().getWindow()));
         if (pickedFile != null) {
             uploadedPhotos.add(pickedFile);
             notifier.showInfo("Billede valgt", "Fil: " + pickedFile.getName());
-            // Nu har vi mindst ét billede + ordrenummer → aktiver “Gem ordren”
-            saveOrderButton.setDisable(false);
+            // Gem-knap kan nu aktiveres, hvis der også er ordrenummer
+            saveOrderButton.setDisable(orderNumberField.getText().trim().isEmpty());
         }
     }
 
+    // Brugeren tager et billede via OpenCV (webcam, eller hvad der nu er tilgængeligt på den valgte enhed). Gemmes i temp-dir
 
-    // Prøver at tage et billede ved hjælp af OpenCV. Hvis der ikke er adgang til et kamera, kommer der en advarsel
     @FXML
     protected void onCameraCaptureClick(ActionEvent event) {
         if (uploadedPhotos.size() >= 5) {
@@ -143,55 +144,79 @@ public class OperatorController extends BaseController {
             return;
         }
 
-        String ts = LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-        String tmpPath = System.getProperty("java.io.tmpdir")
-                + File.separator + "capture_" + ts + ".jpg";
+        // Filnavn med timestamp for at undgå overlap
+
+        String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String tmpPath = System.getProperty("java.io.tmpdir") + File.separator + "capture_" + ts + ".jpg";
+
+        // Brug OpenCV til at tage snapshot/frame
 
         boolean success = OpenCVHelper.getInstance().saveFrameToFile(tmpPath);
         if (success) {
             File snapshot = new File(tmpPath);
             uploadedPhotos.add(snapshot);
             notifier.showInfo("Billede taget", "Snapshot gemt: " + snapshot.getName());
-            saveOrderButton.setDisable(false);
+            saveOrderButton.setDisable(orderNumberField.getText().trim().isEmpty());
         } else {
-            notifier.showWarning("Kamera fejl", "Kunne ikke tage billede (ingen kamera eller ingen frame).");
+            notifier.showWarning("Kamera fejl", "Kunne ikke tage billede (ingen kamera eller intet billede).");
         }
     }
 
+    // Gemmer ordren med tilhørende billeder i systemet (kører i baggrundstråd)
 
-    // Ved et tryk på Gem ordren, oprettes ét photo med status pending
     @FXML
     protected void onSaveOrderClick(ActionEvent event) {
         String orderNumber = orderNumberField.getText().trim();
         String comment     = commentField.getText().trim();
 
-        try {
-            operatorService.saveOrder(orderNumber, uploadedPhotos, comment, currentUser);
-            notifier.showInfo("Ordre gemt", "Ordre nr. " + orderNumber + " er nu oprettet.");
+        if (orderNumber.isEmpty() || uploadedPhotos.isEmpty()) {
+            notifier.showWarning("Manglende data", "Indtast ordrenummer og vælg mindst ét billede.");
+            return;
+        }
 
-            // Ryd formular + midlertidige billeder
+        saveOrderButton.setDisable(true);
+        statusLabel.setText("Gemmer ordre...");
+
+        // Baggrundsopgave så GUI ikke fryser
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                operatorService.saveOrder(orderNumber, uploadedPhotos, comment, currentUser);
+                return null;
+            }
+        };
+
+        // Håndtering når det lykkes
+
+        task.setOnSucceeded(e -> {
+            notifier.showInfo("Ordre gemt", "Ordre nr. " + orderNumber + " er nu oprettet.");
             uploadedPhotos.clear();
             orderNumberField.clear();
             commentField.clear();
+            statusLabel.setText("");
             saveOrderButton.setDisable(true);
+            loadOrders(); // Opdater lister
+        });
 
-            // Opdater ALLE lister (PENDING, IN_REVIEW og COMPLETED)
-            loadOrders();
-        }
-        catch (Exception e) {
-            notifier.showWarning("Fejl ved gem", "Kunne ikke gemme ordren: " + e.getMessage());
-        }
+        // Håndtering hvis noget fejler
+
+        task.setOnFailed(e -> {
+            statusLabel.setText("");
+            saveOrderButton.setDisable(false);
+            notifier.showWarning("Fejl ved gem", String.valueOf(task.getException().getMessage()));
+        });
+
+        new Thread(task).start();
     }
 
-    /**
-     * “Log ud”‐knap: skift tilbage til rolle‐valget.
-     */
+    // Log ud: skift tilbage til rollevalgsskærmen
+
     @FXML
     protected void onLogoutButtonClick(ActionEvent event) {
         changeScene(View.ROLE_SELECTION, getStageFromEvent(event));
     }
 }
+
 
 
 

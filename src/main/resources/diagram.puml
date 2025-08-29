@@ -1,0 +1,50 @@
+@startuml
+title Klassediagram: Kerneklasser og deres metoder
+
+' --- Service-laget ---
+class PhotoService {
+    + uploadPhotos(files: List<File>, orderId: int, currentUser: User): boolean
+    + fetchPhotosByOrder(orderId: int): List<Photo>
+}
+
+class ReportService {
+    + generatePdfReport(orderId: int, currentUser: User): String
+    + fetchReportsByOrder(orderId: int): List<Report>
+}
+
+class AuthService {
+    + authenticate(username: String, password: String): User
+    + changePassword(userId: int, newPassword: String): boolean
+}
+
+' --- Repository-laget ---
+class PhotoRepository {
+    + savePhoto(orderId: int, userId: int, filepath: String): boolean
+    + fetchPendingPhotos(): List<Photo>
+    + updatePhotoQA(photoId: int, status: String, comments: String): boolean
+}
+
+class ReportRepository {
+    + saveReport(orderId: int, generatedBy: int, filePath: String): boolean
+    + fetchReportsByOrder(orderId: int): List<Report>
+}
+
+class UserRepository {
+    + findByUsername(username: String): User
+    + createUser(username: String, passwordHash: String, roleName: String): boolean
+    + findAllUsers(): List<User>
+    + updateUserRole(userId: int, newRole: String): boolean
+}
+
+' --- Relationer / Afhængigheder ---
+PhotoService --> PhotoRepository : uses
+PhotoService --> UserRepository  : reads userId
+
+
+ReportService --> ReportRepository : uses
+ReportService --> PhotoRepository   : fetches photos
+ReportService --> UserRepository    : reads user
+
+AuthService --> UserRepository : uses
+
+@enduml

@@ -1,23 +1,32 @@
 package gui;
 
-
-//Hjælperklasse til dialoger
+// Hjælpeklasse til dialoger/notifikationer i GUI.
+// I stedet for at alle controllere selv kalder showWarning()/showInfo(),
+// kan de bruge denne helper.
 public class NotificationHelper {
-    private final BaseController controller;
+    private final BaseController controller; // Reference til den controller der har dialogerne
+
+    // Constructor: tager imod den controller, som skal kunne vise beskeder
 
     public NotificationHelper(BaseController controller) {
         this.controller = controller;
     }
 
-    // Wrapper til  warning
+    // wrapper-metode til at vise en advarsel
+
     public void showWarning(String title, String message) {
         controller.showWarning(title, message);
     }
 
-    // Wrapper til info
+    // wrapper-metode til at vise en info-dialog
+
     public void showInfo(String title, String message) {
         controller.showInfo(title, message);
     }
+
+    // Specialiserede beskeder til typiske fejlscenarier:
+    // Alle disse metoder bruger showWarning/showInfo men med faste tekster,
+    // så controllere slipper for at gentage strengene.
 
     public void warnMissingInput() {
         controller.showWarning("Manglende input", "Udfyld alle felter for at fortsætte.");
@@ -42,6 +51,7 @@ public class NotificationHelper {
     public void warnSelectUserAndRole() {
         controller.showWarning("Manglende valg", "Vælg både en bruger og en rolle.");
     }
+
     public void infoRoleAssigned(String username, String role) {
         showInfo("Bruger opdateret", username + " er nu " + role);
     }

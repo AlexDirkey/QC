@@ -13,30 +13,34 @@ import model.Photo;
 import java.io.File;
 import java.util.List;
 
-//Controller til visning af fotohistorik af en ordre.
+// Controller for historik-vinduet.
+// Viser alle billeder, der hører til en bestemt ordre, inkl. preview og kommentarer.
 
 public class HistorikController {
 
-    @FXML
-    private ListView<String> historikListView;
 
     @FXML
-    private ImageView historikPreview;
+    private ListView<String> historikListView; // Liste over fotos til en ordre, som string
 
     @FXML
-    private Label kommentarLabel;
+    private ImageView historikPreview; // Preview af valgt billede
+
+    @FXML
+    private Label kommentarLabel; // Label til at vise evt. kommentarer
 
 
-    //Henter photo-ojekter
-    private final PhotoService photoService = new PhotoService();
-    private ObservableList<Photo> photos;
+    private final PhotoService photoService = new PhotoService(); // Service til at hente billeder fra DB
+    private ObservableList<Photo> photos; // Holder de faktiske Photo-objekter (ikke bare tekstvisning)
 
-    //Indlæser historie for en given ordre
+    // Indlæser historikken for et givent ordrenummer
+    // → Henter billederne fra DB og fylder listen med bruger+tidspunkt
+
     public void loadHistorik(String orderNumber) {
         List<Photo> photoList = photoService.getPhotosByOrderNumber(orderNumber);
         photos = FXCollections.observableArrayList(photoList);
 
-        //LAver en visningsliste med bruger og tidspunkt
+        // Bygger en tekstliste (hvem og hvornår)
+
         ObservableList<String> visning = FXCollections.observableArrayList();
         for (Photo photo : photos) {
             visning.add("Bruger: " + photo.getUploadedBy() + " | " + photo.getUploadedAt());
@@ -44,25 +48,37 @@ public class HistorikController {
         historikListView.setItems(visning);
     }
 
+    // Kører når FXML er loadet: tilføjer en listener, så vi reagerer når brugeren vælger et foto
+
     @FXML
-    //Initialiserer lister
     private void initialize() {
-        historikListView.getSelectionModel().selectedIndexProperty().addListener((obs, oldVal, newVal) -> onPhotoSelected());
+        historikListView.getSelectionModel()
+                .selectedIndexProperty()
+                .addListener((obs, oldVal, newVal) -> onPhotoSelected());
     }
 
-    //Kaldes, når et foto vælges på listen
+    // Kaldes når et foto vælges i listen
+
     private void onPhotoSelected() {
         int index = historikListView.getSelectionModel().getSelectedIndex();
         if (index >= 0 && index < photos.size()) {
             Photo selected = photos.get(index);
             File file = new File(selected.getFilePath());
+
+            // Hvis filen findes, så vis den i ImageView
+
             if (file.exists()) {
                 historikPreview.setImage(new Image(file.toURI().toString()));
             } else {
                 historikPreview.setImage(null);
             }
-            //Viser kommentarer
-            kommentarLabel.setText(selected.getComment() != null ? selected.getComment() : "Ingen kommentar.");
+
+            // Vis kommentar
+
+            kommentarLabel.setText(
+                    selected.getComment() != null ? selected.getComment() : "Ingen kommentar."
+            );
         }
     }
 }
+

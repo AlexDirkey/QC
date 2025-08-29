@@ -8,13 +8,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-//Gemmer fotos, og inddeler dem i kategorier
 public class OperatorService {
     private final PhotoRepository photoRepository = new PhotoRepository();
-    private final PhotoService photoService = new PhotoService(); //
+    private final PhotoService photoService = new PhotoService();
 
-
-    //Gemmer en ny ordre med status pending
+    // Gemmer fotos som PENDING
     public void saveOrder(String orderNumber, List<File> imageFiles, String comment, String uploadedBy) throws Exception {
         for (File imageFile : imageFiles) {
             Photo photo = new Photo(
@@ -31,22 +29,17 @@ public class OperatorService {
         }
     }
 
-
-    // Henter fotos, der er pending
+    // Lister til Operator-skærmen
     public List<Photo> getPendingPhotos() {
         return photoService.getPhotosWithStatus("PENDING");
     }
 
-
-    // Henter fotos, der er in review
     public List<Photo> getInReviewPhotos() {
         return photoRepository.getAllPhotos().stream()
                 .filter(p -> "IN_REVIEW".equalsIgnoreCase(p.getStatus()))
                 .collect(Collectors.toList());
     }
 
-
-    //Henter fotos, der har status approved eller rejected
     public List<Photo> getCompletedPhotos() {
         return photoRepository.getAllPhotos().stream()
                 .filter(p -> {
@@ -56,9 +49,10 @@ public class OperatorService {
                 .collect(Collectors.toList());
     }
 
-
-    //Markerer et photo til at være in-review
+    // Valgfrit: send enkeltfoto til QA (PENDING → IN_REVIEW)
     public void markInReview(int photoId) {
         photoRepository.updateStatusToInReview(photoId);
     }
 }
+
+

@@ -8,10 +8,12 @@ import java.util.Properties;
 
 public class MailHelper {
 
-    //Sender en email med vedhæftet fil.
+    //Hjælperklasse til at sende emails med en vedhæftet fil. Bruger Jakarta Mail.
 
     public static void sendEmailWithAttachment(String to, String subject, String body, File attachment) throws Exception {
-        //Hardcoded demo-bruger
+
+        //Hardcoded demo-bruger.
+
         final String username = "din.email@gmail.com";
         final String password = "din-app-kode";
 
@@ -20,6 +22,8 @@ public class MailHelper {
         props.put("mail.smtp.starttls.enable", "true");
         props.put("mail.smtp.host", "smtp.gmail.com");
         props.put("mail.smtp.port", "587");
+
+        // Opretter en session med login-oplysninger
 
         Session session = Session.getInstance(props, new Authenticator() {
             protected PasswordAuthentication getPasswordAuthentication() {

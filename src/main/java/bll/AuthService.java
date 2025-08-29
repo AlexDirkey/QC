@@ -20,7 +20,7 @@ public class AuthService {
     }
 
     // Forsøger at logge en bruger ind
-    public void authenticate(String username, String password) throws AuthException {
+    public User authenticate(String username, String password) throws AuthException {
         User user = userRepository.findByUsername(username);
         if (user == null) {
             throw new AuthException("Bruger ikke oprettet – kontakt administrator.");
@@ -28,6 +28,7 @@ public class AuthService {
         if (!BCrypt.checkpw(password, user.getPassword())) {
             throw new AuthException("Forkert brugernavn eller password – kontakt administrator.");
         }
+        return user;
     }
 
     // Opretter en ny bruger med et hashet password

@@ -1,80 +1,72 @@
 package gui;
 
+import bll.DocumentationService;
 import bll.PhotoService;
 import bll.ReportService;
+import gui.NotificationHelper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import model.Photo;
 
-
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
-
-//Controller til QA
+import java.util.Optional;
 
 public class QAController extends BaseController {
 
-    @FXML private ListView<String> photoListView;
-    @FXML private ImageView photoPreview;
-    @FXML private Button approveButton;
-    @FXML private Button rejectButton;
-    @FXML private Button generateReportButton;
-    @FXML private Button viewHistoryButton;
-    @FXML private Label statusLabel;
-
-
     private final PhotoService photoService = new PhotoService();
     private final ReportService reportService = new ReportService(photoService);
-    private final gui.NotificationHelper notifier = new gui.NotificationHelper(this);
+    private final DocumentationService docService = new DocumentationService(reportService, photoService);
+    private final NotificationHelper notifier = new NotificationHelper(this);
+
+    @FXML private ListView<String> photoListView;
+    @FXML private ImageView        photoPreview;
+    @FXML private Button           approveButton;
+    @FXML private Button           rejectButton;
+    @FXML private Label            statusLabel;
 
     private List<Photo> pendingPhotos;
 
-
-    //Initialiserer controller - loader fotos
     @FXML
-    public void initialize() {
-
+    private void initialize() {
         loadPendingPhotos();
         photoListView.getSelectionModel().selectedIndexProperty()
                 .addListener((obs, oldIdx, newIdx) -> onPhotoSelected());
     }
 
-
-    //Henter fotos og viser dem i listen
+    // HENT PENDING (afventer QA)
     private void loadPendingPhotos() {
-
-        pendingPhotos = photoService.getUnapprovedPhotos();
+        pendingPhotos = photoService.getPhotosWithStatus("PENDING");
         ObservableList<String> display = FXCollections.observableArrayList();
         for (Photo p : pendingPhotos) {
+            String comment = (p.getComment() != null && !p.getComment().isBlank())
+                    ? p.getComment() : "Ingen kommentarer";
             display.add(String.format("Ordre: %s | Bruger: %s | %s | Kommentar: %s",
-                    p.getOrderNumber(), p.getUploadedBy(), p.getUploadedAt(),
-                    p.getComment() !=null && !p.getComment().isBlank() ? p.getComment() : "Ingen kommentarer"));
+                    p.getOrderNumber(), p.getUploadedBy(), p.getUploadedAt(), comment));
         }
         photoListView.setItems(display);
         photoPreview.setImage(null);
         statusLabel.setText("");
     }
 
-
-    // Viser et photos, eller en fejl
     private void onPhotoSelected() {
         int idx = photoListView.getSelectionModel().getSelectedIndex();
-        if (idx < 0 || idx >= pendingPhotos.size()) return;
-
+        if (idx < 0 || idx >= pendingPhotos.size()) {
+            photoPreview.setImage(null);
+            return;
+        }
         Photo photo = pendingPhotos.get(idx);
         File file = new File(photo.getFilePath());
         if (file.exists()) {
@@ -82,50 +74,36 @@ public class QAController extends BaseController {
             statusLabel.setText("");
         } else {
             photoPreview.setImage(null);
-            notifier.showWarning("Billede ikke fundet", "Kunne ikke indlæse det valgte billede.");
+            statusLabel.setText("Fil ikke fundet: " + file.getAbsolutePath());
         }
     }
 
-
-    //Opdaterer et photos status
     @FXML
-    private void onApproveButtonClick() {
-        updatePhotoStatus(true);
+    private void onApproveButtonClick(ActionEvent event) {
+        updateSelectedPhotoStatus(true);
     }
 
     @FXML
-    private void onRejectButtonClick() {
-        updatePhotoStatus(false);
+    private void onRejectButtonClick(ActionEvent event) {
+        updateSelectedPhotoStatus(false);
     }
 
-    @FXML
-    protected void navigateBackToRoleSelection(ActionEvent event) {
-
-        // Gå tilbage til rollevalg
-
-        changeScene(View.ROLE_SELECTION, getStageFromEvent(event));
-    }
-
-    private void updatePhotoStatus(boolean approved) {
+    private void updateSelectedPhotoStatus(boolean approved) {
         int idx = photoListView.getSelectionModel().getSelectedIndex();
-        if (idx < 0) {
-            notifier.showWarning("Ingen valgt", "Vælg et foto først.");
+        if (idx < 0 || idx >= pendingPhotos.size()) {
+            notifier.showWarning("Intet valgt", "Vælg et foto først.");
             return;
         }
         Photo photo = pendingPhotos.get(idx);
         try {
             photoService.updatePhotoStatus(photo.getId(), approved);
-            notifier.showInfo("Status opdateret",
-                    approved ? "Foto godkendt." : "Foto afvist.");
+            notifier.showInfo("Status opdateret", approved ? "Foto godkendt." : "Foto afvist.");
             loadPendingPhotos();
         } catch (Exception e) {
-            notifier.showWarning("Opdateringsfejl",
-                    "Kunne ikke opdatere foto: " + e.getMessage());
+            notifier.showWarning("Opdateringsfejl", "Kunne ikke opdatere foto: " + e.getMessage());
         }
     }
 
-
-    //Generer en pdf rapport og sender til valgte mail (Mail ikke defineret)
     @FXML
     private void onGenerateReportClick() {
         TextInputDialog dialog = new TextInputDialog();
@@ -135,28 +113,100 @@ public class QAController extends BaseController {
 
         String email = dialog.showAndWait().orElse(null);
         if (email == null || email.isBlank()) {
-
             notifier.showWarning("Ingen e-mail", "E-mailadresse er påkrævet.");
             return;
         }
 
-        try {
-            reportService.generateAndSendApprovedReport(email);
-            notifier.showInfo("Rapport sendt", "E-mail sendt til: " + email);
-        } catch (Exception e) {
-            notifier.showWarning("Rapportfejl",
-                    "Kunne ikke generere eller sende rapport: " + e.getMessage());
+        int idx = photoListView.getSelectionModel().getSelectedIndex();
+        if (idx < 0 || idx >= pendingPhotos.size()) {
+            notifier.showWarning("Intet valgt", "Vælg et foto/ordre først.");
+            return;
         }
+        String orderNumber = pendingPhotos.get(idx).getOrderNumber();
+
+        approveButton.setDisable(true);
+        rejectButton.setDisable(true);
+        statusLabel.setText("Genererer rapport...");
+
+        Task<File> generateTask = new Task<>() {
+            @Override
+            protected File call() throws Exception {
+                return docService.generateReportForOrder(orderNumber);
+            }
+        };
+
+        generateTask.setOnSucceeded(ev -> {
+            File pdf = generateTask.getValue();
+            statusLabel.setText("Rapport klar.");
+
+            Alert preview = new Alert(Alert.AlertType.CONFIRMATION);
+            preview.setTitle("Rapport genereret");
+            preview.setHeaderText("Rapport for ordre " + orderNumber + " er genereret.");
+            ButtonType openBtn = new ButtonType("Åbn");
+            ButtonType sendBtn = new ButtonType("Send");
+            ButtonType cancel  = ButtonType.CANCEL;
+            preview.getButtonTypes().setAll(openBtn, sendBtn, cancel);
+
+            Optional<ButtonType> res = preview.showAndWait();
+
+            if (res.isPresent() && res.get() == openBtn) {
+                try {
+                    if (Desktop.isDesktopSupported()) {
+                        Desktop.getDesktop().open(pdf);
+                    } else {
+                        notifier.showWarning("Kan ikke åbne", "Desktop-integration er ikke understøttet.");
+                    }
+                } catch (IOException e) {
+                    notifier.showWarning("Åbn fejl", e.getMessage());
+                } finally {
+                    approveButton.setDisable(false);
+                    rejectButton.setDisable(false);
+                }
+
+            } else if (res.isPresent() && res.get() == sendBtn) {
+                statusLabel.setText("Sender rapport...");
+                Task<Void> sendTask = new Task<>() {
+                    @Override
+                    protected Void call() throws Exception {
+                        docService.sendReport(email, orderNumber, pdf);
+                        return null;
+                    }
+                };
+                sendTask.setOnSucceeded(e2 -> {
+                    statusLabel.setText("Rapport sendt.");
+                    approveButton.setDisable(false);
+                    rejectButton.setDisable(false);
+                });
+                sendTask.setOnFailed(e2 -> {
+                    statusLabel.setText("");
+                    approveButton.setDisable(false);
+                    rejectButton.setDisable(false);
+                    notifier.showWarning("Fejl", "Kunne ikke sende rapport: " + sendTask.getException().getMessage());
+                });
+                new Thread(sendTask).start();
+
+            } else {
+                statusLabel.setText("");
+                approveButton.setDisable(false);
+                rejectButton.setDisable(false);
+            }
+        });
+
+        generateTask.setOnFailed(ev -> {
+            statusLabel.setText("");
+            approveButton.setDisable(false);
+            rejectButton.setDisable(false);
+            notifier.showWarning("Fejl", "Kunne ikke generere rapport: " + generateTask.getException().getMessage());
+        });
+
+        new Thread(generateTask).start();
     }
 
-
-    // Åbner en historik visning af den valgte ordre
     @FXML
-    private void onViewHistoryClick() {
-
+    private void onViewHistoryClick(ActionEvent event) {
         int idx = photoListView.getSelectionModel().getSelectedIndex();
-        if (idx < 0) {
-            notifier.showWarning("Ingen valgt", "Vælg en ordre først.");
+        if (idx < 0 || idx >= pendingPhotos.size()) {
+            notifier.showWarning("Intet valgt", "Vælg et foto/ordre først.");
             return;
         }
         String orderNumber = pendingPhotos.get(idx).getOrderNumber();
@@ -165,6 +215,7 @@ public class QAController extends BaseController {
             Parent root = loader.load();
             HistorikController hist = loader.getController();
             hist.loadHistorik(orderNumber);
+
             Stage stage = new Stage();
             stage.setTitle("Ordrehistorik");
             stage.setScene(new Scene(root));
@@ -173,4 +224,11 @@ public class QAController extends BaseController {
             notifier.showWarning("Fejl", "Kunne ikke åbne historik: " + e.getMessage());
         }
     }
+
+    @FXML
+    private void navigateBack(ActionEvent event) {
+        changeScene(View.ROLE_SELECTION, getStageFromEvent(event));
+    }
 }
+
+

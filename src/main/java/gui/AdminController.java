@@ -5,77 +5,83 @@ import gui.util.InputManager;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.ListView;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import java.util.Optional;
 
-
-//Controller til admin. Bruges til at oprette, slette, og tildele roller til brugere.
+// Controller til admin. Bruges til at oprette, slette, og tildele roller til brugere.
 
 public class AdminController extends BaseController {
 
-    @FXML private ListView<String> userListView; //Liste over eksisterende brugernavne
-    @FXML private TextField usernameField; // Inputfelt til nye brugernavne
-    @FXML private PasswordField passwordField; //Input til nye passwords
-    @FXML private ComboBox<String> roleComboBox; //Dropdown-menu til de forskellige roller
+    @FXML private ListView<String> userListView;     // Liste over eksisterende brugernavne
+    @FXML private TextField        usernameField;    // Inputfelt til nye brugernavne
+    @FXML private PasswordField    passwordField;    // Input til nye passwords
+    @FXML private ComboBox<String> roleComboBox;     // Dropdown-menu til de forskellige roller
 
-    private final AuthService authService = new AuthService(); //bll til brugerhåndtering
-    private final NotificationHelper notifier = new NotificationHelper(this); //Hjælpeclass til dialoger/notifikationer
+    private final AuthService authService = new AuthService();                 // BLL til brugerhåndtering
+    private final NotificationHelper notifier = new NotificationHelper(this);  // Hjælpeklasse til dialoger/notifikationer
 
-    // roller automatisk ved indlæsning - fylder combobox med roller, og indlæser brugere
+    // Fylder combobox med roller og indlæser brugere ved visning
     @FXML
     private void initialize() {
-
         roleComboBox.setItems(FXCollections.observableArrayList("Admin", "QA", "Operator"));
         refreshUserList();
     }
 
-    //Opdater de nyeste brugernavne
+    // Opdaterer listen over brugere
     private void refreshUserList() {
-
-        userListView.setItems(
-                FXCollections.observableArrayList(authService.getAllUsernames()) //Henter alle brugernavne
-        );
+        userListView.setItems(FXCollections.observableArrayList(authService.getAllUsernames()));
     }
 
-    //Håndterer 'opret bruger'
-    //Checker, om alle felter er udfyldt, om brugernavnet eksisterer
-
+    // Håndterer 'opret bruger'
     @FXML
     private void onCreateUserClick(ActionEvent event) {
         String u = usernameField.getText();
         String p = passwordField.getText();
         String r = roleComboBox.getValue();
 
-
         if (!InputManager.isFilled(u, p, r)) {
-
-            notifier.warnMissingInput(); return;
+            notifier.warnMissingInput();
+            return;
         }
         if (authService.userExists(u)) {
-
-            notifier.warnUserExists(u); return;
+            notifier.warnUserExists(u);
+            return;
         }
+
         authService.addUser(u, p, r);
         notifier.infoUserCreated(u, r);
         clearForm();
         refreshUserList();
     }
 
-    // Håndterer 'slet bruger'.
+    // Håndterer 'slet bruger' (med bekræftelsesdialog)
     @FXML
     private void onDeleteUserClick(ActionEvent event) {
-
         String sel = userListView.getSelectionModel().getSelectedItem();
-        if (sel == null) { notifier.warnSelectUser(); return; }
-        authService.deleteUser(sel);
-        notifier.infoUserDeleted(sel);
-        refreshUserList();
+        if (sel == null) {
+            notifier.warnSelectUser();
+            return;
+        }
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Bekræft sletning");
+        confirm.setHeaderText("Er du sikker på, at du vil slette denne bruger?");
+        confirm.setContentText("Bruger: " + sel);
+
+        Optional<ButtonType> result = confirm.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            try {
+                authService.deleteUser(sel);   // slet i BLL/DB
+                refreshUserList();             // opdater UI-listen
+                notifier.infoUserDeleted(sel); // succes-besked
+            } catch (Exception ex) {
+                notifier.showWarning("Fejl", "Kunne ikke slette brugeren: " + ex.getMessage());
+            }
+        }
+        // Hvis CANCEL: gør ingenting (ingen popup)
     }
 
-    //Håndterer 'tildel rolle'
-
+    // Håndterer 'tildel rolle'
     @FXML
     private void onAssignRoleClick(ActionEvent event) {
         String sel = userListView.getSelectionModel().getSelectedItem();
@@ -87,15 +93,13 @@ public class AdminController extends BaseController {
         }
 
         authService.assignRoleToUser(sel, r);
-        notifier.infoRoleAssigned(sel, r); // tilføj denne i NotificationHelper
+        notifier.infoRoleAssigned(sel, r);
         roleComboBox.getSelectionModel().clearSelection();
     }
 
-
-    // Håndterer 'log ud', og skifter tilbage til "forsiden", roleSelection
+    // Håndterer 'log ud' → tilbage til roleSelection
     @FXML
     private void onLogoutClick(ActionEvent event) {
-        // Gå tilbage til rollevalg
         changeScene(View.ROLE_SELECTION, getStageFromEvent(event));
     }
 
